@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     await db.insert(expenses).values({
       amount: amountFormatted,
       concept: body.concept,
-      categoryId: body.categoryName,
+      category: body.categoryName,
       userId: user.id,
       date: body.expenseDate ? new Date(body.expenseDate) : new Date(),
       expenseDate: body.expenseDate ? body.expenseDate : new Date().toISOString().split('T')[0],

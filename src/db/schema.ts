@@ -39,8 +39,8 @@ export const expenses = pgTable('expenses', {
   
   // RELATIONS (Foreign Keys)
   userId: uuid('user_id').notNull().references(() => users.id),
-  categoryId: text('category_id').notNull(),
-  
+  category: text('category').notNull(),  
+
   // Traceability
   isRecurring: boolean('is_recurring').default(false),
 });
@@ -56,7 +56,7 @@ export const subscriptions = pgTable('subscriptions', {
   
   // RELATIONS
   userId: uuid('user_id').notNull().references(() => users.id),
-  categoryId: text('category_id').notNull(),
+  category: text('category').notNull(),
   
   // Recurrence Logic (Value + Unit)
   frequencyValue: integer('frequency_value').notNull().default(1),
