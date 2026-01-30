@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { expenses, users, categories } from '@/db/schema';
+import { expenses, users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { encryptUserKey } from '@/lib/crypto';
 
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   try {
     const body: CreateExpenseDTO = (await req.json()) as CreateExpenseDTO;
 
-    if (!body.amount || !body.concept || !body.categoryName || !body.userKey) {
+    if (!body.amount || !body.concept || !body.categoryName || !body.userKey || !body.expenseDate) {
       return NextResponse.json({ error: 'Missing input in body' }, { status: 400 });
     }
 
@@ -32,18 +32,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const category = await db.query.categories.findFirst({
-      where: eq(categories.name, body.categoryName),
-    });
-
-    if (!category) {
-      return NextResponse.json({ error: `Category '${body.categoryName}' not found.` }, { status: 400 });
-    }
 
     await db.insert(expenses).values({
       amount: body.amount.toString(),
       concept: body.concept,
-      categoryId: category.id,
+      categoryId: body.categoryName,
       userId: user.id,
       date: body.expenseDate ? new Date(body.expenseDate) : new Date(),
       expenseDate: body.expenseDate ? body.expenseDate : new Date().toISOString().split('T')[0],

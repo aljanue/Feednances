@@ -14,16 +14,6 @@ export const users = pgTable('users', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-/**
- * TABLE: categories
- * Purpose: Dynamic classification of expenses.
- */
-export const categories = pgTable('categories', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  name: text('name').notNull().unique(), // E.g., "Food"
-  slug: text('slug').notNull().unique(), // E.g., "food"
-  icon: text('icon'), // E.g., "🍔"
-});
 
 /**
  * TABLE: time_units
@@ -49,7 +39,7 @@ export const expenses = pgTable('expenses', {
   
   // RELATIONS (Foreign Keys)
   userId: uuid('user_id').notNull().references(() => users.id),
-  categoryId: uuid('category_id').notNull().references(() => categories.id),
+  categoryId: text('category_id').notNull(),
   
   // Traceability
   isRecurring: boolean('is_recurring').default(false),
@@ -66,7 +56,7 @@ export const subscriptions = pgTable('subscriptions', {
   
   // RELATIONS
   userId: uuid('user_id').notNull().references(() => users.id),
-  categoryId: uuid('category_id').notNull().references(() => categories.id),
+  categoryId: text('category_id').notNull(),
   
   // Recurrence Logic (Value + Unit)
   frequencyValue: integer('frequency_value').notNull().default(1),
@@ -88,20 +78,12 @@ export const expensesRelations = relations(expenses, ({ one }) => ({
     fields: [expenses.userId],
     references: [users.id],
   }),
-  category: one(categories, {
-    fields: [expenses.categoryId],
-    references: [categories.id],
-  }),
 }));
 
 export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
   user: one(users, {
     fields: [subscriptions.userId],
     references: [users.id],
-  }),
-  category: one(categories, {
-    fields: [subscriptions.categoryId],
-    references: [categories.id],
   }),
   timeUnit: one(timeUnits, {
     fields: [subscriptions.timeUnitId],
