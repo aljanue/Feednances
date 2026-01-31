@@ -11,7 +11,7 @@ export const users = pgTable('users', {
   username: text('username').notNull().unique(), // E.g., "alex"
   email: text('email').unique(), // Optional, for future web login
   userKey: text('user_key').unique().notNull(), // THE KEY for shortcuts
-  createdAt: timestamp('created_at').defaultNow().notNull(),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
 });
 
 
@@ -34,8 +34,8 @@ export const expenses = pgTable('expenses', {
   
   concept: text('concept').notNull(),
   amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
-  date: timestamp('date').defaultNow().notNull(),
-  expenseDate: date('expenseDate', { mode: 'string' }).notNull(),
+  date: timestamp('date', { mode: 'date' }).defaultNow().notNull(),
+  expenseDate: date('expense_date', { mode: 'date' }).notNull(),
   
   // RELATIONS (Foreign Keys)
   userId: uuid('user_id').notNull().references(() => users.id),
@@ -63,8 +63,10 @@ export const subscriptions = pgTable('subscriptions', {
   timeUnitId: uuid('time_unit_id').notNull().references(() => timeUnits.id),
   
   // Status
-  nextRun: timestamp('next_run').notNull(),
+  nextRun: timestamp('next_run', { mode: 'date' }).notNull(),
   active: boolean('active').default(true),
+
+  startsAt: timestamp('starts_at', { mode: 'date' }).defaultNow().notNull(),
 });
 
 // RELATION DEFINITIONS

@@ -20,10 +20,10 @@ async function main() {
 
   console.log('⏳ Creating time units...');
   await db.insert(timeUnits).values([
-    { name: 'Días', value: 'days' },
-    { name: 'Semanas', value: 'weeks' },
-    { name: 'Meses', value: 'months' },
-    { name: 'Años', value: 'years' },
+    { name: 'Días', value: 'day' },
+    { name: 'Semanas', value: 'week' },
+    { name: 'Meses', value: 'month' },
+    { name: 'Años', value: 'year' },
   ]).onConflictDoNothing();
 
   console.log('✅ Database ready! You can now use the API.');
