@@ -1,22 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { expenses, users } from '@/db/schema';
+import { expenses } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
-import { encryptUserKey } from '@/lib/crypto';
+import { validateRequest } from '@/utils/user.utils';
 
 export async function DELETE(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const userKey = searchParams.get('userKey');
-
-    if (!userKey) {
-      return NextResponse.json({ error: 'Missing userKey' }, { status: 400 });
-    }
-
-    const encryptedKey = encryptUserKey(userKey);
-    const user = await db.query.users.findFirst({
-      where: eq(users.userKey, encryptedKey),
-    });
+    const user = await validateRequest(req);
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized user' }, { status: 403 });

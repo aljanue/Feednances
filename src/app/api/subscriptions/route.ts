@@ -1,13 +1,12 @@
 import { db } from "@/db";
-import { subscriptions, timeUnits } from "@/db/schema";
+import { expenses, subscriptions, timeUnits } from "@/db/schema";
 import { formatAmount } from "@/utils/format-data.utils";
-import { findUserByKey } from "@/utils/user.utils";
+import { validateRequest } from "@/utils/user.utils";
 import { eq } from "drizzle-orm";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { calculateNextRun } from "@/utils/subscriptions.utils";
 
 interface CreateSubscriptionDTO {
-  userKey: string;
   concept: string;
   amount: string;
   periodType: string;
@@ -16,28 +15,26 @@ interface CreateSubscriptionDTO {
   startsAt?: string;
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const body: CreateSubscriptionDTO =
       (await req.json()) as CreateSubscriptionDTO;
 
     if (
-      !body.userKey ||
       !body.concept ||
       !body.amount ||
       !body.periodType ||
       !body.periodValue ||
       !body.categoryName
     ) {
-      return new Response(JSON.stringify({ error: "Missing input in body" }), {
+      return NextResponse.json({ error: "Missing input in body" }, {
         status: 400,
       });
     }
 
-    const user = await findUserByKey(body.userKey);
-
+    const user = await validateRequest(req);
     if (!user) {
-      return new Response(JSON.stringify({ error: "User not found" }), {
+      return NextResponse.json({ error: "User not found" }, {
         status: 404,
       });
     }
@@ -48,37 +45,71 @@ export async function POST(req: Request) {
 
     if (!timeUnit) {
       return NextResponse.json(
-        { error: `Unidad de tiempo inválida: ${body.periodType}` },
+        { error: `Invalid time unit: ${body.periodType}` },
         { status: 400 },
       );
     }
 
     const amountFormatted = formatAmount(body.amount);
+const today = new Date();
+    const startsAtDate = body.startsAt ? new Date(body.startsAt) : today;
 
-    const nextRunDate = calculateNextRun(body.periodValue, body.periodType);
-    const startsAtDate = body.startsAt ? new Date(body.startsAt) : new Date();
+    const todayMidnight = new Date();
+    todayMidnight.setHours(0, 0, 0, 0);
 
-    await db.insert(subscriptions).values({
-      userId: user.id,
-      name: body.concept,
-      amount: amountFormatted,
-      timeUnitId: timeUnit.id,
-      frequencyValue: body.periodValue,
-      category: body.categoryName,
-      nextRun: nextRunDate,
-      active: true,
-      startsAt: startsAtDate,
+    const startMidnight = new Date(startsAtDate);
+    startMidnight.setHours(0, 0, 0, 0);
+
+    const shouldChargeNow = startMidnight <= todayMidnight;
+
+    let initialNextRun: Date;
+
+    await db.transaction(async (tx) => {
+      if (shouldChargeNow) {
+        await tx.insert(expenses).values({
+          userId: user.id,
+          concept: `🔄 ${body.concept}`,
+          amount: amountFormatted,
+          category: body.categoryName,
+          date: new Date(),
+          expenseDate: startsAtDate,
+          isRecurring: true,
+        });
+
+        initialNextRun = calculateNextRun(
+          body.periodValue,
+          body.periodType,
+          startsAtDate
+        );
+      } else {
+        initialNextRun = startsAtDate;
+      }
+
+      await tx.insert(subscriptions).values({
+        userId: user.id,
+        name: body.concept,
+        amount: amountFormatted,
+        timeUnitId: timeUnit.id,
+        frequencyValue: body.periodValue,
+        category: body.categoryName,
+        nextRun: initialNextRun,
+        active: true,
+        startsAt: startsAtDate,
+      });
     });
 
     return NextResponse.json({
       success: true,
-      message: `Suscripción creada. Próximo cobro: ${nextRunDate.toLocaleDateString()}`,
+      message: shouldChargeNow
+        ? `✅ Created subscription and first payment of ${amountFormatted}€ registered.`
+        : `✅ Subscription scheduled. First charge on ${startsAtDate.toLocaleDateString()}.`,
     });
+
   } catch (error) {
     console.error("Error saving subscription:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

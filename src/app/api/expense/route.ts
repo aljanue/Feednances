@@ -2,14 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { expenses } from "@/db/schema";
 import { formatAmount } from "@/utils/format-data.utils";
-import { findUserByKey } from "@/utils/user.utils";
+import { validateRequest } from "@/utils/user.utils";
 
 // DTO (Data Transfer Object): Contrato de lo que esperamos recibir del móvil
 interface CreateExpenseDTO {
   amount: number | string;
   concept: string;
   categoryName: string;
-  userKey: string; /// User API Key
   expenseDate: string;
   isRecurring?: boolean;
 }
@@ -22,7 +21,6 @@ export async function POST(req: NextRequest) {
       !body.amount ||
       !body.concept ||
       !body.categoryName ||
-      !body.userKey ||
       !body.expenseDate
     ) {
       return NextResponse.json(
@@ -31,7 +29,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const user = await findUserByKey(body.userKey);
+    const user = await validateRequest(req);
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -44,7 +42,7 @@ export async function POST(req: NextRequest) {
       concept: body.concept,
       category: body.categoryName,
       userId: user.id,
-      date: body.expenseDate ? new Date(body.expenseDate) : new Date(),
+      date: new Date(),
       expenseDate: body.expenseDate ? new Date(body.expenseDate) : new Date(),
       isRecurring: body.isRecurring || false,
     });
