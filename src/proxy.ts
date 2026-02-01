@@ -1,20 +1,24 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  if (pathname.startsWith('/api')) {
-    if (pathname.startsWith('/api/cron') || pathname.startsWith('/api/health')) {
+  if (pathname.startsWith("/api")) {
+    if (
+      pathname.startsWith("/api/cron") ||
+      pathname.startsWith("/api/health") ||
+      pathname.startsWith("/api/telegram/webhook")
+    ) {
       return NextResponse.next();
     }
 
-    const apiKey = req.headers.get('x-api-key');
+    const apiKey = req.headers.get("x-api-key");
     const secretKey = process.env.API_SECRET_KEY;
 
     if (!apiKey || apiKey !== secretKey) {
       return NextResponse.json(
-        { error: 'You don\'t have access!' },
-        { status: 401 }
+        { error: "You don't have access!" },
+        { status: 401 },
       );
     }
   }
@@ -23,5 +27,5 @@ export function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/api/:path*', '/dashboard/:path*'],
+  matcher: ["/api/:path*", "/dashboard/:path*"],
 };
