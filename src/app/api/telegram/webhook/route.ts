@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
 
           await sendMessage(
             telegramId,
-            `\n🔗 <b>¡Automatic Linked!</b>\n\nHello ${user.username}, I have configured your notifications correctly.\n`,
+            `\n🔗 <b>Automatic Linked!</b>\n\nHello ${user.username}, I have configured your notifications correctly.\n`,
           );
           console.log(`🔗 User ${user.username} linked via Deep Link`);
 
