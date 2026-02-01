@@ -3,8 +3,11 @@ import { db } from "@/db";
 import { subscriptions, expenses, timeUnits, users } from "@/db/schema";
 import { eq, lte, and, between } from "drizzle-orm";
 import { calculateNextRun } from "@/utils/subscriptions.utils";
-import { sendSubscriptionChargedEmail, sendUpcomingSubscriptionEmail } from "@/lib/email"; 
 import { addDays, startOfDay, endOfDay } from "date-fns";
+import {
+  sendSubscriptionChargedNotification,
+  sendUpcomingSubscriptionNotification,
+} from "@/lib/telegram";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +31,7 @@ export async function GET(req: NextRequest) {
         frequencyValue: subscriptions.frequencyValue,
         timeUnitValue: timeUnits.value,
         nextRun: subscriptions.nextRun,
-        userEmail: users.email,
+        telegramChatId: users.telegramChatId,
       })
       .from(subscriptions)
       .leftJoin(timeUnits, eq(subscriptions.timeUnitId, timeUnits.id))
@@ -39,9 +42,9 @@ export async function GET(req: NextRequest) {
 
     for (const sub of subsDue) {
       if (!sub.timeUnitValue) continue;
-      
+
       try {
-        let newNextRun: Date | null = null; 
+        let newNextRun: Date | null = null;
 
         await db.transaction(async (tx) => {
           await tx.insert(expenses).values({
@@ -66,17 +69,16 @@ export async function GET(req: NextRequest) {
             .where(eq(subscriptions.id, sub.id));
         });
 
-        if (sub.userEmail && newNextRun) {
-             await sendSubscriptionChargedEmail(
-                sub.userEmail, 
-                sub.name, 
-                sub.amount.toString(), 
-                newNextRun
-             );
+        if (sub.telegramChatId && newNextRun) {
+          await sendSubscriptionChargedNotification(
+            sub.telegramChatId,
+            sub.name,
+            sub.amount.toString(),
+            newNextRun,
+          );
         }
-        
-        results.push(`✅ Charged: ${sub.name}`);
 
+        results.push(`✅ Charged: ${sub.name}`);
       } catch (innerError) {
         console.error(`❌ Subscription failed: ${sub.name}`, innerError);
       }
@@ -91,26 +93,26 @@ export async function GET(req: NextRequest) {
         name: subscriptions.name,
         amount: subscriptions.amount,
         nextRun: subscriptions.nextRun,
-        userEmail: users.email,
+        telegramChatId: users.telegramChatId,
       })
       .from(subscriptions)
       .leftJoin(users, eq(subscriptions.userId, users.id))
       .where(
         and(
           eq(subscriptions.active, true),
-          between(subscriptions.nextRun, startOfTarget, endOfTarget)
-        )
+          between(subscriptions.nextRun, startOfTarget, endOfTarget),
+        ),
       );
 
     for (const sub of subsUpcoming) {
-      if (sub.userEmail) {
-          await sendUpcomingSubscriptionEmail(
-            sub.userEmail, 
-            sub.name, 
-            sub.amount.toString(), 
-            sub.nextRun
-          );
-          results.push(`⚠️ Notice sent: ${sub.name}`);
+      if (sub.telegramChatId) {
+        await sendUpcomingSubscriptionNotification(
+          sub.telegramChatId,
+          sub.name,
+          sub.amount.toString(),
+          sub.nextRun,
+        );
+        results.push(`⚠️ Telegram sent: ${sub.name}`);
       }
     }
 
@@ -119,9 +121,11 @@ export async function GET(req: NextRequest) {
       processed: results.length,
       details: results,
     });
-
   } catch (error) {
     console.error("Cron error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }

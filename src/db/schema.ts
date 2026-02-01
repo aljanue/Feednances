@@ -14,6 +14,7 @@ export const users = pgTable('users', {
   password: text('password').notNull(), // Hashed password for web login
   deleted: boolean('deleted').default(false), // Soft delete flag
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  telegramChatId: text('telegram_chat_id') // For Telegram notifications
 });
 
 
