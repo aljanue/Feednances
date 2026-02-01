@@ -38,13 +38,13 @@ export async function POST(req: NextRequest) {
 
           await sendMessage(
             telegramId,
-            `✅ <b>¡Automatic Linked!</b>\n\nHello ${user.username}, I have configured your notifications correctly.`,
+            `\n🔗 <b>¡Automatic Linked!</b>\n\nHello ${user.username}, I have configured your notifications correctly.\n`,
           );
           console.log(`🔗 User ${user.username} linked via Deep Link`);
 
           await sendMessage(
             telegramId,
-            `🚀 <b>Next Step:</b>\nTo add expenses and subscriptions in seconds, install the main iOS Shortcut.\n\n👇 <b>Download here:</b>\n<a href="https://www.icloud.com/shortcuts/TU_ENLACE_AQUI">📲 Install Feednances App</a>`,
+            `\n🚀 <b>Next Step:</b>\nTo add expenses and subscriptions in seconds, install the main iOS Shortcut.\n\n👇 <b>Download here:</b>\n<a href="https://www.icloud.com/shortcuts/e7560ae3d4804005bab592f33a4b1d31">📲 Install Feednances App</a>\n`,
           );
         } else {
           await sendMessage(
