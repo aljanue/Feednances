@@ -24,17 +24,20 @@ export async function POST(req: NextRequest) {
     const userKey = generateUserKey(body.username);
     const hashedUserKey = hashUserKey(userKey);
 
-    await db.insert(users).values({
-      username: body.username,
-      email: body.email,
-      createdAt: new Date(),
-      password: encryptedPassword,
-      userKey: hashedUserKey,
-      deleted: false,
-    });
+    const [newUser] = await db
+      .insert(users)
+      .values({
+        username: body.username,
+        email: body.email,
+        createdAt: new Date(),
+        password: encryptedPassword,
+        userKey: hashedUserKey,
+        deleted: false,
+      })
+      .returning({ id: users.id });
 
     return NextResponse.json(
-      { success: true, message: "User created", key: userKey },
+      { success: true, message: "User created", key: userKey, id: newUser.id },
       { status: 201 },
     );
   } catch (e: unknown) {

@@ -15,7 +15,7 @@ const STYLE = {
 /**
  * Core send function
  */
-async function sendMessage(chatId: string, text: string) {
+export async function sendMessage(chatId: string, text: string) {
   if (!BOT_TOKEN || !chatId) {
     console.error("❌ Missing Telegram credentials");
     return;
