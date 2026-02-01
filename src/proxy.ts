@@ -4,7 +4,7 @@ import type { NextRequest } from 'next/server';
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   if (pathname.startsWith('/api')) {
-    if (pathname.startsWith('/api/cron')) {
+    if (pathname.startsWith('/api/cron') || pathname.startsWith('/api/health')) {
       return NextResponse.next();
     }
 
