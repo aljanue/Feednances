@@ -1,38 +1,60 @@
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { generateUserKey, hashUserKey } from "@/lib/crypto";
+import bcrypt from "bcryptjs";
+import type { PostgresError } from "postgres";
 import { NextRequest, NextResponse } from "next/server";
 
 interface CreateUserDTO {
   username: string;
-  email?: string;
-  key?: string;
+  email: string;
+  password: string;
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as CreateUserDTO;
 
-    if (!body.username) {
-      return NextResponse.json({ error: "Name is required" }, { status: 400 });
+    if (!body.username || !body.email || !body.password) {
+      return NextResponse.json({ error: "Invalid body" }, { status: 400 });
     }
 
-    const userKey = body.key ?? generateUserKey();
-    const encryptedKey = hashUserKey(userKey);
+    const encryptedPassword = await bcrypt.hash(body.password, 10);
+
+    const userKey = generateUserKey(body.username);
+    const hashedUserKey = hashUserKey(userKey);
 
     await db.insert(users).values({
       username: body.username,
       email: body.email,
       createdAt: new Date(),
-      userKey: encryptedKey,
+      password: encryptedPassword,
+      userKey: hashedUserKey,
+      deleted: false,
     });
 
     return NextResponse.json(
-      { success: true, message: "User created", userKey },
+      { success: true, message: "User created", key: userKey },
       { status: 201 },
     );
-  } catch (error) { 
-    console.error("Error saving expense:", error);
+  } catch (e: unknown) {
+    const error = e as Error & { cause?: PostgresError };
+    const code = error.cause?.code;
+    console.log("🚀🚀🚀🚀🚀 error: ", e);
+    if (code === "23505") {
+      const detail = error.cause?.detail || "";
+      const field = detail.includes("email") ? "email" : "username";
+
+      return NextResponse.json(
+        {
+          error: `${field} already exists.`,
+          key: field,
+        },
+        { status: 409 },
+      );
+    }
+
+    console.error("Error saving user:", e);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },

@@ -9,8 +9,10 @@ import { relations } from 'drizzle-orm';
 export const users = pgTable('users', {
   id: uuid('id').defaultRandom().primaryKey(),
   username: text('username').notNull().unique(), // E.g., "alex"
-  email: text('email').unique(), // Optional, for future web login
-  userKey: text('user_key').unique().notNull(), // THE KEY for shortcuts
+  email: text('email').unique().notNull(), // Optional, for future web login
+  userKey: text('secret_key').unique().notNull(), // THE KEY for shortcuts
+  password: text('password').notNull(), // Hashed password for web login
+  deleted: boolean('deleted').default(false), // Soft delete flag
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
 });
 

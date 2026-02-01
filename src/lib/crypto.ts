@@ -13,9 +13,9 @@ export function hashUserKey(userKey: string): string {
 
 /**
  * Generates a new user key.
- * Format: ff_<48 random hex characters>
+ * Format: ff_<username>:<48 random hex characters>
  */
-export function generateUserKey(): string {
+export function generateUserKey(username: string): string {
   const randomPart = crypto.randomBytes(24).toString('hex');
-  return `ff_${randomPart}`;
+  return `ff_${username}:${randomPart}`;
 }
