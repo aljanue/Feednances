@@ -1,11 +1,12 @@
-import * as dotenv from 'dotenv';
-import path from 'path';
-import { db } from '@/db';
-import { users } from '@/db/schema';
-import { generateUserKey, hashUserKey } from '@/lib/crypto'; // Importamos lo nuevo
-import * as readline from 'readline';
+import * as dotenv from "dotenv";
+import path from "path";
+import { db } from "@/db";
+import { users } from "@/db/schema";
+import { generateUserKey, hashUserKey } from "@/lib/crypto"; // Importamos lo nuevo
+import * as readline from "readline";
+import bcrypt from "bcryptjs";
 
-dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
+dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -18,44 +19,55 @@ function question(query: string): Promise<string> {
 
 async function addUser() {
   try {
-    console.log('👤 Add new user (Secure Mode)\n');
-    
-    const username = await question('👤 Username: ');
-    if (!username) { console.log('❌ Username required'); process.exit(1); }
+    console.log("👤 Add new user (Secure Mode)\n");
 
-    const email = await question('📧 Email (optional): ');
-    
-    // Generación de clave
-    const useCustom = await question('\n🔐 Use custom key? (y/n): ');
-    let rawKey = "";
-
-    if (useCustom.toLowerCase().startsWith('y')) {
-      rawKey = await question('🔑 Enter your key: ');
-    } else {
-      rawKey = generateUserKey(); // Genera "ff_..."
+    const username = await question("👤 Username: ");
+    if (!username) {
+      console.log("❌ Username required");
+      process.exit(1);
     }
-    
-    // 🛡️ HASHEO: Guardamos el hash, mostramos la raw
-    const hashedKey = hashUserKey(rawKey);
-    
+
+    const email = await question("📧 Email: ");
+    if (!email) {
+      console.log("❌ Email required");
+      process.exit(1);
+    }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      console.log("❌ Invalid email format");
+      process.exit(1);
+    }
+
+    const password = await question("🔑 Password: ");
+
+    if (!password) {
+      console.log("❌ Password required");
+      process.exit(1);
+    }
+
+    const encryptedPassword = await bcrypt.hash(password, 10);
+
+    const userKey = generateUserKey(username);
+    const hashedUserKey = hashUserKey(userKey);
+
     await db.insert(users).values({
       username,
-      email: email || null,
-      userKey: hashedKey, // A la DB va el hash
+      email: email,
+      password: encryptedPassword,
+      userKey: hashedUserKey,
     });
-    
-    console.log('\n✅ User created successfully!');
-    console.log('------------------------------------------------');
+
+    console.log("\n✅ User created successfully!");
+    console.log("------------------------------------------------");
     console.log(`👤 Username: ${username}`);
-    console.log(`🔑 API KEY:  ${rawKey}`); // ⚠️ ÚNICA VEZ QUE SE VE
-    console.log('------------------------------------------------');
-    console.log('⚠️  COPY THIS KEY NOW. You cannot see it again.');
-    console.log('   (We only stored a secure hash of it)');
-    
+    console.log(`🔑 API KEY:  ${userKey}`);
+    console.log("------------------------------------------------");
+    console.log("⚠️  COPY THIS KEY NOW. You cannot see it again.");
+    console.log("   (We only stored a secure hash of it)");
+
     rl.close();
     process.exit(0);
   } catch (error) {
-    console.error('Error:', error);
+    console.error("Error:", error);
     rl.close();
     process.exit(1);
   }

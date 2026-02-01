@@ -40,7 +40,6 @@ export async function POST(req: NextRequest) {
   } catch (e: unknown) {
     const error = e as Error & { cause?: PostgresError };
     const code = error.cause?.code;
-    console.log("🚀🚀🚀🚀🚀 error: ", e);
     if (code === "23505") {
       const detail = error.cause?.detail || "";
       const field = detail.includes("email") ? "email" : "username";
