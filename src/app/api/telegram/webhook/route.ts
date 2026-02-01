@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { users } from '@/db/schema';
-import { eq } from 'drizzle-orm';
-import { sendMessage } from '@/lib/telegram';
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/db";
+import { users } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { sendMessage } from "@/lib/telegram";
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,34 +15,54 @@ export async function POST(req: NextRequest) {
     const { text, chat } = update.message;
     const telegramId = chat.id.toString();
 
-    if (text.startsWith('/start')) {
-      const parts = text.split(' ');
-      
+    if (text.startsWith("/start")) {
+      const parts = text.split(" ");
+
       if (parts.length === 2) {
         const userId = parts[1];
 
         const user = await db.query.users.findFirst({
-          where: eq(users.id, userId)
+          where: eq(users.id, userId),
         });
 
         if (user) {
-          await db.update(users)
+          await sendMessage(
+            telegramId,
+            `🤖 <b>Welcome to Feednances Bot!</b>\n\nI'm your personal assistant for subscription control. My mission is to ensure you never miss a payment:\n\n🔔 I'll notify you 2 days before each renewal.\n✅ I'll confirm once a payment is recorded in our system.`,
+          );
+
+          await db
+            .update(users)
             .set({ telegramChatId: telegramId })
             .where(eq(users.id, userId));
 
-          await sendMessage(telegramId, `✅ <b>¡Automatic Linked!</b>\n\nHello ${user.username}, I have configured your notifications correctly.`);
+          await sendMessage(
+            telegramId,
+            `✅ <b>¡Automatic Linked!</b>\n\nHello ${user.username}, I have configured your notifications correctly.`,
+          );
           console.log(`🔗 User ${user.username} linked via Deep Link`);
+
+          await sendMessage(
+            telegramId,
+            `🚀 <b>Next Step:</b>\nTo add expenses and subscriptions in seconds, install the main iOS Shortcut.\n\n👇 <b>Download here:</b>\n<a href="https://www.icloud.com/shortcuts/TU_ENLACE_AQUI">📲 Install Feednances App</a>`,
+          );
         } else {
-          await sendMessage(telegramId, "❌ Didn't find any account associated with this link.");
+          await sendMessage(
+            telegramId,
+            "❌ Didn't find any account associated with this link.",
+          );
         }
       } else {
-        await sendMessage(telegramId, "👋 Hello. To link your account, use the button from the App or Shortcut.");
+        await sendMessage(
+          telegramId,
+          "👋 Hello. To link your account, use the button from the App or Shortcut.",
+        );
       }
     }
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error('Webhook Error:', error);
+    console.error("Webhook Error:", error);
     return NextResponse.json({ ok: true });
   }
 }
