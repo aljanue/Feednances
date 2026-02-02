@@ -27,16 +27,22 @@ export async function POST(req: NextRequest) {
       !body.periodValue ||
       !body.categoryName
     ) {
-      return NextResponse.json({ error: "Missing input in body" }, {
-        status: 400,
-      });
+      return NextResponse.json(
+        { error: "Missing input in body" },
+        {
+          status: 400,
+        },
+      );
     }
 
     const user = await validateRequest(req);
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, {
-        status: 404,
-      });
+      return NextResponse.json(
+        { error: "User not found" },
+        {
+          status: 404,
+        },
+      );
     }
 
     const timeUnit = await db.query.timeUnits.findFirst({
@@ -51,7 +57,8 @@ export async function POST(req: NextRequest) {
     }
 
     const amountFormatted = formatAmount(body.amount);
-const today = new Date();
+     
+    const today = new Date();
     const startsAtDate = body.startsAt ? new Date(body.startsAt) : today;
 
     const todayMidnight = new Date();
@@ -77,9 +84,9 @@ const today = new Date();
         });
 
         initialNextRun = calculateNextRun(
-          body.periodValue,
+          Number(body.periodValue),
           body.periodType,
-          startsAtDate
+          startsAtDate,
         );
       } else {
         initialNextRun = startsAtDate;
@@ -104,12 +111,11 @@ const today = new Date();
         ? `✅ Created subscription and first payment of ${amountFormatted}€ registered.`
         : `✅ Subscription scheduled. First charge on ${startsAtDate.toLocaleDateString()}.`,
     });
-
   } catch (error) {
     console.error("Error saving subscription:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
