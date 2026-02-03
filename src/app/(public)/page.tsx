@@ -1,10 +1,10 @@
-import UnderConstruction from "@/components/shared/under-construction";
+import MainSection from "@/components/public/home/main-section";
 
 export default function LandingPage() {
   return (
-    <UnderConstruction
-      title="Welcome to Fiscal Flow"
-      description="We are preparing the best experience to manage your subscriptions and expenses. Coming very soon!"
-    />
+    <>
+      <MainSection />
+      <div className="w-full min-h-screen"></div>
+    </>
   );
 }

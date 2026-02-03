@@ -36,9 +36,7 @@ export default function PublicLayout({
   return (
     <div className="flex flex-col min-h-screen">
       <NavBar />
-      <div className="p-8 grow flex items-center justify-center">
-        {children}
-      </div>
+      {children}
     </div>
   );
 }

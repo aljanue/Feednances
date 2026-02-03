@@ -21,7 +21,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${inter.variable} min-h-screen text-foreground font-sans antialiased`}
+        className={`${inter.variable} min-h-screen text-foreground font-sans antialiased overflow-x-hidden`}
         style={{
           background: `
             radial-gradient(ellipse 80% 60% at 50% -30%, rgba(43, 238, 108, 0.12), transparent),

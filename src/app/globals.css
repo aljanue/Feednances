@@ -147,3 +147,22 @@
 .nav-link.active::after {
   width: 100%;
 }
+
+/* Custom animations */
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(43, 238, 108, 0.1), 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(43, 238, 108, 0.2), 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  }
+}
+
+@keyframes blink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
+  }
+}
