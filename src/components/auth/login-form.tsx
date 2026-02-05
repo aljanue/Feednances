@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { SocialLoginButtons } from "./social-login-buttons";
+import { RegistrationSuccessAlert } from "./registration-success-alert";
 
 export function LoginForm() {
   const [errorMessage, dispatch, isPending] = useActionState(authenticate, undefined);
@@ -19,6 +21,7 @@ export function LoginForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <RegistrationSuccessAlert />
         <form action={dispatch} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
@@ -57,6 +60,8 @@ export function LoginForm() {
           >
             {isPending ? "Signing in..." : "Sign In"}
           </Button>
+
+          <SocialLoginButtons />
         </form>
       </CardContent>
     </Card>

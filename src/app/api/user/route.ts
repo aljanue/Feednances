@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 interface CreateUserDTO {
   username: string;
+  fullName?: string;
   email: string;
   password: string;
 }
@@ -28,6 +29,7 @@ export async function POST(req: NextRequest) {
       .insert(users)
       .values({
         username: body.username,
+        fullName: body.fullName,
         email: body.email,
         createdAt: new Date(),
         password: encryptedPassword,

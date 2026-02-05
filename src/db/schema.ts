@@ -9,10 +9,12 @@ import { relations } from 'drizzle-orm';
 export const users = pgTable('users', {
   id: uuid('id').defaultRandom().primaryKey(),
   username: text('username').notNull().unique(), // E.g., "alex"
+  fullName: text('full_name'), // Full name (Name & Surname)
   email: text('email').unique().notNull(), // Optional, for future web login
-  userKey: text('secret_key').unique().notNull(), // THE KEY for shortcuts
-  password: text('password').notNull(), // Hashed password for web login
+  userKey: text('secret_key').unique(), // THE KEY for shortcuts (generated separately)
+  password: text('password'), // Hashed password for web login (null for OAuth users)
   deleted: boolean('deleted').default(false), // Soft delete flag
+  firstLogin: boolean('first_login').default(true).notNull(), // True until first login completed
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
   telegramChatId: text('telegram_chat_id') // For Telegram notifications
 });

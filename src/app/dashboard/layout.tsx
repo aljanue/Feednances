@@ -1,5 +1,8 @@
-import { cookies } from "next/headers";
+import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import { db } from "@/db";
+import { users } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export const metadata = {
   title: "Dashboard | Feednances",
@@ -11,10 +14,18 @@ export const metadata = {
 };
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const cookieStore = await cookies();
-  const session = cookieStore.get("auth_token");
+  const session = await auth();
 
-  if (!session) redirect("/login");
+  if (!session?.user) redirect("/login");
+
+  // Check if user needs to complete first login setup
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, session.user.id),
+  });
+
+  if (user?.firstLogin) {
+    redirect("/configuration");
+  }
 
   return (
     <>

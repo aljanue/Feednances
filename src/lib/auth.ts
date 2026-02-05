@@ -1,19 +1,23 @@
 "use server";
 
-import { signIn } from "@/auth";
+import { signIn, auth } from "@/auth";
 import { AuthError } from "next-auth";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { hash } from "bcryptjs";
-import { generateUserKey, hashUserKey } from "@/lib/crypto";
 import { redirect } from "next/navigation";
+import { eq } from "drizzle-orm";
 
 export async function authenticate(
   prevState: string | undefined,
   formData: FormData,
 ) {
   try {
-    await signIn("credentials", formData);
+    await signIn("credentials", {
+      email: formData.get("email"),
+      password: formData.get("password"),
+      redirectTo: "/dashboard",
+    });
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {
@@ -28,36 +32,102 @@ export async function authenticate(
 }
 
 export async function registerUser(prevState: unknown, formData: FormData) {
+  const fullName = formData.get("fullName") as string;
   const username = formData.get("username") as string;
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  const confirmPassword = formData.get("confirmPassword") as string;
+
+  if (/\s/.test(username)) {
+    return { error: "Username cannot contain spaces." };
+  }
 
   if (password.length < 8) {
-    return { error: "Password is too short." };
+    return { error: "Password must be at least 8 characters." };
+  }
+  if (!/[A-Z]/.test(password)) {
+    return { error: "Password must contain at least one uppercase letter." };
+  }
+  if (!/[a-z]/.test(password)) {
+    return { error: "Password must contain at least one lowercase letter." };
+  }
+  if (!/[0-9]/.test(password)) {
+    return { error: "Password must contain at least one number." };
+  }
+  if (!/[!@#$%^&*(),.?":{}|<>\[\]\\;'`~_+\-=/]/.test(password)) {
+    return { error: "Password must contain at least one special character." };
+  }
+  if (password !== confirmPassword) {
+    return { error: "Passwords do not match." };
   }
 
   try {
-    // 1. Hashing de seguridad
     const hashedPassword = await hash(password, 10);
-    
-    // 2. Generación de API Key para Atajos de iOS
-    const userKey = generateUserKey(username);
-    const hashedUserKey = hashUserKey(userKey);
 
     await db.insert(users).values({
       username,
+      fullName,
       email,
       password: hashedPassword,
-      userKey: hashedUserKey,
       createdAt: new Date(),
     });
 
   } catch (error: unknown) {
-    if (error instanceof Error && error.message.includes("unique")) {
-      return { error: "The email or username already exists." };
+    if (error instanceof Error) {
+      const errorMessage = error.message.toLowerCase();
+      const errorCause = (error as { cause?: { code?: string } }).cause;
+      
+      if (errorCause?.code === '23505' || errorMessage.includes("unique") || errorMessage.includes("duplicate")) {
+        return { error: "Couldn't create an account with this information. Try different credentials or sign in.", shouldClear: true, clearId: Date.now() };
+      }
     }
-    return { error: "Internal server error." };
+    console.error("🚀🚀🚀🚀🚀🚀 Registration error:", error);
+    return { error: "Something went wrong. Please try again later." };
   }
 
   redirect("/login?registered=true");
+}
+
+export async function setUserPassword(prevState: unknown, formData: FormData) {
+  const session = await auth();
+  
+  if (!session?.user?.id) {
+    return { error: "You must be logged in to set a password." };
+  }
+
+  const password = formData.get("password") as string;
+  const confirmPassword = formData.get("confirmPassword") as string;
+
+  if (password.length < 8) {
+    return { error: "Password must be at least 8 characters." };
+  }
+  if (!/[A-Z]/.test(password)) {
+    return { error: "Password must contain at least one uppercase letter." };
+  }
+  if (!/[a-z]/.test(password)) {
+    return { error: "Password must contain at least one lowercase letter." };
+  }
+  if (!/[0-9]/.test(password)) {
+    return { error: "Password must contain at least one number." };
+  }
+  if (!/[!@#$%^&*(),.?":{}|<>\[\]\\;'`~_+\-=/]/.test(password)) {
+    return { error: "Password must contain at least one special character." };
+  }
+  if (password !== confirmPassword) {
+    return { error: "Passwords do not match." };
+  }
+
+  try {
+    const hashedPassword = await hash(password, 10);
+
+    await db
+      .update(users)
+      .set({ password: hashedPassword })
+      .where(eq(users.id, session.user.id));
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error setting password:", error);
+    return { error: "Something went wrong. Please try again." };
+  }
 }
