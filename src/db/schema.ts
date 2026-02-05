@@ -1,10 +1,22 @@
-import { pgTable, uuid, text, decimal, timestamp, boolean, integer, date, primaryKey } from 'drizzle-orm/pg-core';
+import { 
+  pgTable, 
+  uuid, 
+  text, 
+  decimal, 
+  timestamp, 
+  boolean, 
+  integer, 
+  date, 
+  primaryKey, 
+  index 
+} from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 /**
- * TABLE: users
- * Purpose: Centralize identity.
- * Design: We include 'user_key' here to quickly validate mobile requests.
+ * TABLE: user
+ * Core identity table. 
+ * 'userKey' stores the SHA-256 hash of the API key for secure mobile access.
+ * 'emailVerified' and 'image' are required for Auth.js compatibility.
  */
 export const users = pgTable('user', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -23,20 +35,19 @@ export const users = pgTable('user', {
 });
 
 /**
- * TABLE: accounts
- * Purpose: Store linked accounts for third-party authentication.
- * Design: Follows Auth.js requirements with camelCase fields.
- * Note: 'userId' is a foreign key referencing 'users.id'.
+ * TABLE: account
+ * Manages OAuth provider links (Google, GitHub).
+ * Indexed by 'userId' to speed up session lookups and account linking.
  */
 export const accounts = pgTable(
   "account",
   {
-    userId: uuid("userId") // Cambiado de 'user_id' a 'userId'
+    userId: uuid("userId")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     type: text("type").notNull(),
     provider: text("provider").notNull(),
-    providerAccountId: text("providerAccountId").notNull(), // camelCase
+    providerAccountId: text("providerAccountId").notNull(),
     refresh_token: text("refresh_token"),
     access_token: text("access_token"),
     expires_at: integer("expires_at"),
@@ -45,71 +56,74 @@ export const accounts = pgTable(
     id_token: text("id_token"),
     session_state: text("session_state"),
   },
-  (account) => ({
+  (table) => ({
     compoundKey: primaryKey({
-      columns: [account.provider, account.providerAccountId],
+      columns: [table.provider, table.providerAccountId],
     }),
+    userIdIdx: index("account_userId_idx").on(table.userId),
   })
 );
 
 /**
  * TABLE: time_units
- * Purpose: Define valid periods for business logic.
+ * Reference table for subscription intervals (e.g., monthly, yearly).
  */
 export const timeUnits = pgTable('time_units', {
   id: uuid('id').defaultRandom().primaryKey(),
-  name: text('name').notNull().unique(), // E.g., "Months"
-  value: text('value').notNull().unique(), // E.g., "months"
+  name: text('name').notNull().unique(),
+  value: text('value').notNull().unique(),
 });
 
 /**
  * TABLE: expenses
- * Purpose: Immutable history.
+ * Individual transaction history.
+ * Indexed by 'userId' to ensure high performance on the main Dashboard view.
  */
 export const expenses = pgTable('expenses', {
   id: uuid('id').defaultRandom().primaryKey(),
-  
   concept: text('concept').notNull(),
   amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
   date: timestamp('date', { mode: 'date' }).defaultNow().notNull(),
   expenseDate: date('expense_date', { mode: 'date' }).notNull(),
-  
-  // RELATIONS (Foreign Keys)
-  userId: uuid('user_id').notNull().references(() => users.id),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: "cascade" }),
   category: text('category').notNull(),  
-
-  // Traceability
   isRecurring: boolean('is_recurring').default(false),
-});
+}, (table) => ({
+  userIdIdx: index("expenses_userId_idx").on(table.userId),
+}));
 
 /**
  * TABLE: subscriptions
- * Purpose: Configuration for the automation engine.
+ * Recurring expense definitions for the automation engine.
+ * Indexed by 'userId' to optimize the cron processing and user management.
  */
 export const subscriptions = pgTable('subscriptions', {
   id: uuid('id').defaultRandom().primaryKey(),
   name: text('name').notNull(),
   amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
-  
-  // RELATIONS
-  userId: uuid('user_id').notNull().references(() => users.id),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: "cascade" }),
   category: text('category').notNull(),
-  
-  // Recurrence Logic (Value + Unit)
   frequencyValue: integer('frequency_value').notNull().default(1),
   timeUnitId: uuid('time_unit_id').notNull().references(() => timeUnits.id),
-  
-  // Status
   nextRun: timestamp('next_run', { mode: 'date' }).notNull(),
   active: boolean('active').default(true),
-
   startsAt: timestamp('starts_at', { mode: 'date' }).defaultNow().notNull(),
-});
+}, (table) => ({
+  userIdIdx: index("subscriptions_userId_idx").on(table.userId),
+}));
 
-// RELATION DEFINITIONS
+/* --- RELATIONS DEFINITIONS (Drizzle ORM Typed Relations) --- */
+
 export const usersRelations = relations(users, ({ many }) => ({
   expenses: many(expenses),
   subscriptions: many(subscriptions),
+}));
+
+export const accountsRelations = relations(accounts, ({ one }) => ({
+  user: one(users, {
+    fields: [accounts.userId],
+    references: [users.id],
+  }),
 }));
 
 export const expensesRelations = relations(expenses, ({ one }) => ({
