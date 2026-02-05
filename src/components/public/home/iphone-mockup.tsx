@@ -43,7 +43,7 @@ export default function IPhoneMockup({ className }: IPhoneMockupProps) {
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || window.innerWidth < 768) return;
     
     const rect = containerRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
@@ -64,8 +64,12 @@ export default function IPhoneMockup({ className }: IPhoneMockupProps) {
 
   const glowColor = getGlowColor();
 
-  const handleMouseEnter = () => setIsHovering(true);
+  const handleMouseEnter = () => {
+    if (window.innerWidth < 768) return;
+    setIsHovering(true);
+  };
   const handleMouseLeave = () => {
+    if (window.innerWidth < 768) return;
     setIsHovering(false);
     // Smoothly return to center
     setGlowPosition({ x: 50, y: 50 });
