@@ -1,11 +1,5 @@
-import UnderConstruction from "@/components/shared/under-construction";
+import { LoginForm } from "@/components/auth/login-form";
 
 export default function LoginPage() {
-  return (
-    <UnderConstruction
-      title="Log In"
-      description="The authentication system will be available very soon."
-      showNotifyButton={false}
-    />
-  );
+  return <LoginForm />;
 }

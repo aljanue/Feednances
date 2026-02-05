@@ -1,13 +1,17 @@
+// proxy.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { auth } from "@/auth"; // Importamos la instancia configurada de Auth.js
 
-export function proxy(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
   if (pathname.startsWith("/api")) {
     if (
       pathname.startsWith("/api/cron") ||
       pathname.startsWith("/api/health") ||
-      pathname.startsWith("/api/telegram/webhook")
+      pathname.startsWith("/api/telegram/webhook") ||
+      pathname.startsWith("/api/auth")
     ) {
       return NextResponse.next();
     }
@@ -17,9 +21,21 @@ export function proxy(req: NextRequest) {
 
     if (!apiKey || apiKey !== secretKey) {
       return NextResponse.json(
-        { error: "You don't have access!" },
-        { status: 401 },
+        { error: "Unauthorized" },
+        { status: 401 }
       );
+    }
+    
+    return NextResponse.next();
+  }
+
+  if (pathname.startsWith("/dashboard")) {
+    const session = await auth(); 
+
+    if (!session) {
+      const loginUrl = new URL("/login", req.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(loginUrl);
     }
   }
 

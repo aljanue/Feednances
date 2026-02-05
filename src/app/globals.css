@@ -148,6 +148,31 @@
   width: 100%;
 }
 
+.nav-link-white {
+  position: relative;
+  color: var(--muted-foreground);
+  transition: color 0.3s ease;
+}
+.nav-link-white:hover {
+  color: var(--foreground);
+}
+
+.nav-link-white::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: var(--muted-foreground);
+  transition: all 0.3s ease;
+}
+
+.nav-link-white:hover::after {
+  width: 100%;
+  color: var(--foreground);
+}
+
 /* Custom animations */
 @keyframes glow {
   0%, 100% {

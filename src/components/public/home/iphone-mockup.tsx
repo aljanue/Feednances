@@ -11,6 +11,7 @@ export default function IPhoneMockup({ className }: IPhoneMockupProps) {
   const [notificationVisible, setNotificationVisible] = useState(false);
   const [glowPosition, setGlowPosition] = useState({ x: 50, y: 50 });
   const [isHovering, setIsHovering] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -22,6 +23,24 @@ export default function IPhoneMockup({ className }: IPhoneMockupProps) {
       clearTimeout(timer2);
     };
   }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+  };
+
+  const formatDay = (date: Date) => {
+    const weekday = date.toLocaleDateString('en-US', { weekday: 'long' });
+    const day = date.getDate();
+    const month = date.toLocaleDateString('en-US', { month: 'long' });
+    return `${weekday}, ${month} ${day}`;
+  };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
@@ -105,6 +124,16 @@ export default function IPhoneMockup({ className }: IPhoneMockupProps) {
             <div className="absolute top-3 left-1/2 -translate-x-1/2 w-24 h-7 bg-black rounded-full z-10 flex items-center justify-center gap-2">
               <div className="w-2 h-2 bg-white/10 rounded-full animate-pulse" />
               <div className="w-3 h-3 bg-white/5 rounded-full border border-white/10" />
+            </div>
+            
+            {/* Time and Date Display - iPhone Lock Screen Style */}
+            <div className="absolute top-16 left-1/2 -translate-x-1/2 text-center z-10 w-full px-4">
+              <div className="text-[11px] text-white/70 font-medium tracking-wide mb-1">
+                {formatDay(currentTime)}
+              </div>
+              <div className="text-5xl font-semibold text-white tracking-tight tabular-nums">
+                {formatTime(currentTime)}
+              </div>
             </div>
             
             {/* Screen content area */}

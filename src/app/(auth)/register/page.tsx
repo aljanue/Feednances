@@ -1,11 +1,7 @@
-import UnderConstruction from "@/components/shared/under-construction";
+import { RegisterForm } from "@/components/auth/register-form";
 
 export default function RegisterPage() {
   return (
-    <UnderConstruction
-      title="Register"
-      description="You will soon be able to create your account and start managing your finances."
-      showNotifyButton={false}
-    />
+      <RegisterForm />
   );
 }
