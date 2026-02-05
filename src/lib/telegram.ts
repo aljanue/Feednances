@@ -32,7 +32,6 @@ export async function sendMessage(chatId: string, text: string) {
         disable_web_page_preview: true
       }),
     });
-    console.log(`✅ Telegram message sent to ${chatId}`);
   } catch (error) {
     console.error('❌ Telegram Network Error:', error);
   }

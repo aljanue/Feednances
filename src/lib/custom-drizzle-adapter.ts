@@ -7,7 +7,6 @@ export function CustomDrizzleAdapter(): Adapter {
   return {
     async createUser(data) {
       try {
-        console.log("🚀🚀🚀🚀🚀🚀🚀 creating user with data: ", data);
         const [newUser] = await db
           .insert(users)
           .values({
@@ -19,7 +18,6 @@ export function CustomDrizzleAdapter(): Adapter {
             image: data.image,
           })
           .returning();
-        console.log("✨ Registro de usuario creado con éxito:", newUser);
         return {
           id: newUser.id,
           email: newUser.email,
@@ -28,7 +26,6 @@ export function CustomDrizzleAdapter(): Adapter {
           name: newUser.fullName,
         };
       } catch (error) {
-        console.error("🔥 Error crítico en insert de usuario:", error);
         throw error;
       }
     },
@@ -48,20 +45,13 @@ export function CustomDrizzleAdapter(): Adapter {
     },
 
     async getUserByEmail(email) {
-      console.log("📧 Buscando usuario por email:", email);
       const user = await db.query.users.findFirst({
         where: eq(users.email, email),
       });
       if (!user) {
-        console.log(
-          "🆕 Email no encontrado. Auth.js debería proceder a createUser.",
-        );
         return null;
       }
-      console.log(
-        "✅ Email encontrado. Auth.js vinculará esta sesión al ID:",
-        user.id,
-      );
+      
 
       return {
         id: user.id,
@@ -73,7 +63,6 @@ export function CustomDrizzleAdapter(): Adapter {
     },
 
     async getUserByAccount({ provider, providerAccountId }) {
-      console.log("🔍 Buscando cuenta:", { provider, providerAccountId });
       const account = await db.query.accounts.findFirst({
         where: and(
           eq(accounts.provider, provider),
@@ -81,21 +70,13 @@ export function CustomDrizzleAdapter(): Adapter {
         ),
       });
       if (!account) {
-        console.log("❌ No se encontró cuenta vinculada.");
         return null;
       }
-      console.log(
-        "✅ Cuenta encontrada, buscando usuario con ID:",
-        account.userId,
-      );
+
       const user = await db.query.users.findFirst({
         where: eq(users.id, account.userId),
       });
-      console.log(
-        user
-          ? "👤 Usuario recuperado de la cuenta."
-          : "⚠️ Cuenta existe pero el usuario NO.",
-      );
+      
       if (!user) return null;
       return {
         id: user.id,
@@ -139,12 +120,6 @@ export function CustomDrizzleAdapter(): Adapter {
     },
 
     async linkAccount(account) {
-      console.log(
-        "🔗 Vinculando proveedor a usuario. userId:",
-        account.userId,
-        "Provider:",
-        account.provider,
-      );
       await db.insert(accounts).values({
         userId: account.userId as string,
         type: account.type,
@@ -158,7 +133,6 @@ export function CustomDrizzleAdapter(): Adapter {
         id_token: (account.id_token as string) || null,
         session_state: (account.session_state as string) || null,
       });
-      console.log("✅ Vinculación completada en tabla 'account'");
     },
 
     async unlinkAccount({ provider, providerAccountId }) {

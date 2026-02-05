@@ -16,9 +16,6 @@ const client = postgres(connectionString);
 const db = drizzle(client);
 
 async function main() {
-  console.log('🌱 Starting data seeding...');
-
-  console.log('⏳ Creating time units...');
   await db.insert(timeUnits).values([
     { name: 'Días', value: 'day' },
     { name: 'Semanas', value: 'week' },
@@ -26,7 +23,6 @@ async function main() {
     { name: 'Años', value: 'year' },
   ]).onConflictDoNothing();
 
-  console.log('✅ Database ready! You can now use the API.');
   process.exit(0);
 }
 
