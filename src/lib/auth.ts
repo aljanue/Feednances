@@ -131,3 +131,23 @@ export async function setUserPassword(prevState: unknown, formData: FormData) {
     return { error: "Something went wrong. Please try again." };
   }
 }
+
+export async function completeConfiguration() {
+  const session = await auth();
+  
+  if (!session?.user?.id) {
+    throw new Error("You must be logged in to complete configuration.");
+  }
+
+  try {
+    await db
+      .update(users)
+      .set({ firstLogin: false })
+      .where(eq(users.id, session.user.id));
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error completing configuration:", error);
+    throw new Error("Something went wrong. Please try again.");
+  }
+}
