@@ -16,9 +16,8 @@ export const metadata = {
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
 
-  if (!session?.user) redirect("/login");
+  if (!session?.user?.id) redirect("/login");
 
-  // Check if user needs to complete first login setup
   const user = await db.query.users.findFirst({
     where: eq(users.id, session.user.id),
   });
