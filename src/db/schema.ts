@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, decimal, timestamp, boolean, integer, date } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, decimal, timestamp, boolean, integer, date, primaryKey } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 /**
@@ -6,19 +6,51 @@ import { relations } from 'drizzle-orm';
  * Purpose: Centralize identity.
  * Design: We include 'user_key' here to quickly validate mobile requests.
  */
-export const users = pgTable('users', {
+export const users = pgTable('user', {
   id: uuid('id').defaultRandom().primaryKey(),
-  username: text('username').notNull().unique(), // E.g., "alex"
-  fullName: text('full_name'), // Full name (Name & Surname)
-  email: text('email').unique().notNull(), // Optional, for future web login
-  userKey: text('secret_key').unique(), // THE KEY for shortcuts (generated separately)
-  password: text('password'), // Hashed password for web login (null for OAuth users)
-  deleted: boolean('deleted').default(false), // Soft delete flag
-  firstLogin: boolean('first_login').default(true).notNull(), // True until first login completed
+  username: text('username').notNull().unique(),
+  fullName: text('name'),
+  email: text('email').unique().notNull(),
+  emailVerified: timestamp("emailVerified", { mode: "date" }),
+  image: text("image"),
+  
+  userKey: text('secret_key').unique(),
+  password: text('password'),
+  deleted: boolean('deleted').default(false),
+  firstLogin: boolean('first_login').default(true).notNull(),
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
-  telegramChatId: text('telegram_chat_id') // For Telegram notifications
+  telegramChatId: text('telegram_chat_id')
 });
 
+/**
+ * TABLE: accounts
+ * Purpose: Store linked accounts for third-party authentication.
+ * Design: Follows Auth.js requirements with camelCase fields.
+ * Note: 'userId' is a foreign key referencing 'users.id'.
+ */
+export const accounts = pgTable(
+  "account",
+  {
+    userId: uuid("userId") // Cambiado de 'user_id' a 'userId'
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    provider: text("provider").notNull(),
+    providerAccountId: text("providerAccountId").notNull(), // camelCase
+    refresh_token: text("refresh_token"),
+    access_token: text("access_token"),
+    expires_at: integer("expires_at"),
+    token_type: text("token_type"),
+    scope: text("scope"),
+    id_token: text("id_token"),
+    session_state: text("session_state"),
+  },
+  (account) => ({
+    compoundKey: primaryKey({
+      columns: [account.provider, account.providerAccountId],
+    }),
+  })
+);
 
 /**
  * TABLE: time_units

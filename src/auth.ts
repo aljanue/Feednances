@@ -2,18 +2,22 @@ import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import GitHub from "next-auth/providers/github"
 import Google from "next-auth/providers/google"
-import { DrizzleAdapter } from "@auth/drizzle-adapter"
+import { CustomDrizzleAdapter } from "@/lib/custom-drizzle-adapter"
 import { db } from "@/db"
 import { users } from "@/db/schema"
 import { eq } from "drizzle-orm"
 import bcrypt from "bcryptjs"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: DrizzleAdapter(db),
+  adapter: CustomDrizzleAdapter(),
   session: { strategy: "jwt" },
   providers: [
-    Google,
-    GitHub,
+    Google({
+      allowDangerousEmailAccountLinking: true,
+    }),
+    GitHub({
+      allowDangerousEmailAccountLinking: true,
+    }),
     Credentials({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;

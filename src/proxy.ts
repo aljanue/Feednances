@@ -1,10 +1,14 @@
-// proxy.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { auth } from "@/auth"; // Importamos la instancia configurada de Auth.js
+import { auth } from "@/auth"; 
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  const session = await auth();
+
+  if (session && (pathname === "/login" || pathname === "/register")) {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
 
   if (pathname.startsWith("/api")) {
     if (
@@ -20,18 +24,13 @@ export async function proxy(req: NextRequest) {
     const secretKey = process.env.API_SECRET_KEY;
 
     if (!apiKey || apiKey !== secretKey) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    
+
     return NextResponse.next();
   }
 
   if (pathname.startsWith("/dashboard")) {
-    const session = await auth(); 
-
     if (!session) {
       const loginUrl = new URL("/login", req.url);
       loginUrl.searchParams.set("callbackUrl", pathname);
@@ -43,5 +42,11 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/api/:path*", "/dashboard/:path*"],
+  matcher: [
+    "/api/:path*",
+    "/dashboard/:path*",
+    "/configuration/:path*",
+    "/login",
+    "/register",
+  ],
 };
