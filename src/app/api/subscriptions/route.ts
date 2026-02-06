@@ -2,18 +2,13 @@ import { db } from "@/db";
 import { expenses, subscriptions, timeUnits } from "@/db/schema";
 import { formatAmount } from "@/utils/format-data.utils";
 import { validateRequest } from "@/utils/user.utils";
+import type { CreateSubscriptionDTO } from "@/lib/dtos/subscription";
+import { auth } from "@/auth";
+import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { calculateNextRun } from "@/utils/subscriptions.utils";
-
-interface CreateSubscriptionDTO {
-  concept: string;
-  amount: string;
-  periodType: string;
-  periodValue: number;
-  categoryName: string;
-  startsAt?: string;
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -35,7 +30,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const user = await validateRequest(req);
+    const session = await auth();
+    const sessionUser = session?.user?.id
+      ? await db.query.users.findFirst({
+          where: eq(users.id, session.user.id),
+        })
+      : null;
+
+    const user = sessionUser ?? (await validateRequest(req));
     if (!user) {
       return NextResponse.json(
         { error: "User not found" },
@@ -57,7 +59,7 @@ export async function POST(req: NextRequest) {
     }
 
     const amountFormatted = formatAmount(body.amount);
-     
+
     const today = new Date();
     const startsAtDate = body.startsAt ? new Date(body.startsAt) : today;
 
@@ -104,6 +106,8 @@ export async function POST(req: NextRequest) {
         startsAt: startsAtDate,
       });
     });
+
+    revalidatePath("/dashboard");
 
     return NextResponse.json({
       success: true,

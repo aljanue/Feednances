@@ -1,9 +1,14 @@
 "use client";
 
-import { type ComponentType, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
+import type {
+    GraphCardData,
+    TimeRangeValue,
+} from "@/lib/dtos/dashboard";
+import { formatCurrency } from "@/lib/utils/formatters";
 import EllipsisMenu, { EllipsisMenuItem } from "./ellipsis-menu";
-import TimeRangeSelect, { TimeRangeValue } from "./time-range-select";
+import TimeRangeSelect from "./time-range-select";
 import CategoryDonutChart from "./charts/category-donut-chart";
 import ExpenseTrendAreaChart from "./charts/expense-trend-area-chart";
 import FixedVariableStackedBarChart from "./charts/fixed-variable-stacked-bar-chart";
@@ -11,41 +16,44 @@ import TopSubscriptionsHorizontalBarChart from "./charts/top-subscriptions-horiz
 
 type ChartKey = "area" | "donut" | "stacked" | "top";
 
-const chartComponents: Record<ChartKey, ComponentType> = {
-    area: ExpenseTrendAreaChart,
-    donut: CategoryDonutChart,
-    stacked: FixedVariableStackedBarChart,
-    top: TopSubscriptionsHorizontalBarChart,
-};
+interface GraphCardProps {
+    dataByRange: GraphCardData;
+    defaultRange?: TimeRangeValue;
+}
 
-export default function GraphCard() {
+export default function GraphCard({
+    dataByRange,
+    defaultRange = "last-3-months",
+}: GraphCardProps) {
     const [chartKey, setChartKey] = useState<ChartKey>("area");
-    const [timeRange, setTimeRange] = useState<TimeRangeValue>("last-3-months");
+    const [timeRange, setTimeRange] = useState<TimeRangeValue>(defaultRange);
+
+    const rangeData = dataByRange[timeRange] ?? dataByRange[defaultRange];
 
     const chartMeta = useMemo(
         () => ({
             area: {
                 label: "Expense Trends",
-                value: "$24,980",
+                value: formatCurrency(rangeData.totals.expenseTrends),
                 title: "Expense Trends",
             },
             donut: {
                 label: "Category Breakdown",
-                value: "$14,720",
+                value: formatCurrency(rangeData.totals.categoryBreakdown),
                 title: "Category Breakdown",
             },
             stacked: {
                 label: "Fixed vs. Variable",
-                value: "$8,940",
+                value: formatCurrency(rangeData.totals.fixedVariable),
                 title: "Fixed vs. Variable",
             },
             top: {
                 label: "Top 5 Subscriptions",
-                value: "$1,470",
+                value: formatCurrency(rangeData.totals.topSubscriptions),
                 title: "Top 5 Most Expensive Subscriptions",
             },
         }),
-        []
+        [rangeData]
     );
 
     const menuItems: EllipsisMenuItem[] = [
@@ -67,7 +75,6 @@ export default function GraphCard() {
         },
     ];
 
-    const ChartComponent = chartComponents[chartKey];
     const meta = chartMeta[chartKey];
 
     return (
@@ -88,7 +95,20 @@ export default function GraphCard() {
             </div>
             <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
                 <div className="min-h-50 w-full">
-                    <ChartComponent />
+                    {chartKey === "area" && (
+                        <ExpenseTrendAreaChart data={rangeData.expenseTrends} />
+                    )}
+                    {chartKey === "donut" && (
+                        <CategoryDonutChart data={rangeData.categoryBreakdown} />
+                    )}
+                    {chartKey === "stacked" && (
+                        <FixedVariableStackedBarChart data={rangeData.fixedVariable} />
+                    )}
+                    {chartKey === "top" && (
+                        <TopSubscriptionsHorizontalBarChart
+                            data={rangeData.topSubscriptions}
+                        />
+                    )}
                 </div>
             </div>
         </div>

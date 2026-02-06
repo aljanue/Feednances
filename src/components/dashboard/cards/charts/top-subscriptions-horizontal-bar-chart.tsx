@@ -10,21 +10,20 @@ import {
   YAxis,
 } from "recharts";
 
+import type { TopSubscriptionItem } from "@/lib/dtos/dashboard";
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 
-const data = [
-  { name: "CloudSuite", value: 420 },
-  { name: "StreamPlus", value: 320 },
-  { name: "DesignPro", value: 280 },
-  { name: "SecurityHub", value: 240 },
-  { name: "MarketWatch", value: 210 },
-];
-
 const chartConfig = {
-  value: { label: "Monthly Cost", color: "var(--chart-3)" },
+  total: { label: "Monthly Cost", color: "var(--chart-3)" },
 };
 
-export default function TopSubscriptionsHorizontalBarChart() {
+interface TopSubscriptionsHorizontalBarChartProps {
+  data: TopSubscriptionItem[];
+}
+
+export default function TopSubscriptionsHorizontalBarChart({
+  data,
+}: TopSubscriptionsHorizontalBarChartProps) {
   return (
     <ChartContainer
       config={chartConfig}
@@ -37,7 +36,11 @@ export default function TopSubscriptionsHorizontalBarChart() {
           margin={{ left: 12, right: 12, top: 8 }}
           barSize={18}
         >
-          <CartesianGrid horizontal={false} strokeDasharray="3 3" stroke="var(--border)" />
+          <CartesianGrid
+            horizontal={false}
+            strokeDasharray="3 3"
+            stroke="var(--border)"
+          />
           <XAxis
             type="number"
             tickLine={false}
@@ -54,8 +57,8 @@ export default function TopSubscriptionsHorizontalBarChart() {
           />
           <Tooltip content={<ChartTooltipContent />} />
           <Bar
-            dataKey="value"
-            fill="var(--color-value)"
+            dataKey="total"
+            fill="var(--color-total)"
             radius={[0, 6, 6, 0]}
           />
         </BarChart>

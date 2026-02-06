@@ -7,12 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../ui/select";
-
-export type TimeRangeValue =
-  | "last-month"
-  | "last-3-months"
-  | "last-6-months"
-  | "last-year";
+import type { TimeRangeValue } from "@/lib/dtos/dashboard";
 
 interface TimeRangeSelectProps {
   value: TimeRangeValue;
@@ -35,7 +30,7 @@ export default function TimeRangeSelect({
       value={value}
       onValueChange={(next) => onValueChange(next as TimeRangeValue)}
     >
-      <SelectTrigger className="w-[180px]">
+      <SelectTrigger className="w-45">
         <SelectValue placeholder="Select range" />
       </SelectTrigger>
       <SelectContent>

@@ -10,33 +10,39 @@ import {
   YAxis,
 } from "recharts";
 
+import type { FixedVariablePoint } from "@/lib/dtos/dashboard";
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
-
-const data = [
-  { month: "Jan", fixed: 4200, variable: 1600 },
-  { month: "Feb", fixed: 4100, variable: 1900 },
-  { month: "Mar", fixed: 4300, variable: 1500 },
-  { month: "Apr", fixed: 4400, variable: 2100 },
-  { month: "May", fixed: 4150, variable: 1750 },
-  { month: "Jun", fixed: 4500, variable: 2300 },
-];
 
 const chartConfig = {
   fixed: { label: "Fixed", color: "var(--chart-2)" },
   variable: { label: "Variable", color: "var(--chart-4)" },
 };
 
-export default function FixedVariableStackedBarChart() {
+interface FixedVariableStackedBarChartProps {
+  data: FixedVariablePoint[];
+}
+
+export default function FixedVariableStackedBarChart({
+  data,
+}: FixedVariableStackedBarChartProps) {
   return (
     <ChartContainer
       config={chartConfig}
       className="h-[clamp(200px,26vw,260px)] w-full"
     >
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ left: 8, right: 12, top: 6 }} barSize={24}>
-          <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" />
+        <BarChart
+          data={data}
+          margin={{ left: 8, right: 12, top: 6 }}
+          barSize={24}
+        >
+          <CartesianGrid
+            vertical={false}
+            strokeDasharray="3 3"
+            stroke="var(--border)"
+          />
           <XAxis
-            dataKey="month"
+            dataKey="label"
             tickLine={false}
             axisLine={false}
             tickMargin={8}

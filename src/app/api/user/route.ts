@@ -4,13 +4,7 @@ import { generateUserKey, hashUserKey } from "@/lib/crypto";
 import bcrypt from "bcryptjs";
 import type { PostgresError } from "postgres";
 import { NextRequest, NextResponse } from "next/server";
-
-interface CreateUserDTO {
-  username: string;
-  fullName?: string;
-  email: string;
-  password: string;
-}
+import type { CreateUserDTO } from "@/lib/dtos/user";
 
 export async function POST(req: NextRequest) {
   try {

@@ -9,25 +9,23 @@ import {
   XAxis,
 } from "recharts";
 
+import type { ExpenseTrendPoint } from "@/lib/dtos/dashboard";
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 
-const data = [
-  { month: "Jan", expenses: 8200 },
-  { month: "Feb", expenses: 9100 },
-  { month: "Mar", expenses: 7600 },
-  { month: "Apr", expenses: 10300 },
-  { month: "May", expenses: 9800 },
-  { month: "Jun", expenses: 11200 },
-];
-
 const chartConfig = {
-  expenses: {
+  total: {
     label: "Expenses",
     color: "var(--chart-1)",
   },
 };
 
-export default function ExpenseTrendAreaChart() {
+interface ExpenseTrendAreaChartProps {
+  data: ExpenseTrendPoint[];
+}
+
+export default function ExpenseTrendAreaChart({
+  data,
+}: ExpenseTrendAreaChartProps) {
   return (
     <ChartContainer
       config={chartConfig}
@@ -37,13 +35,25 @@ export default function ExpenseTrendAreaChart() {
         <AreaChart data={data} margin={{ left: 12, right: 12, top: 8 }}>
           <defs>
             <linearGradient id="expensesGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="var(--color-expenses)" stopOpacity={0.35} />
-              <stop offset="95%" stopColor="var(--color-expenses)" stopOpacity={0.02} />
+              <stop
+                offset="5%"
+                stopColor="var(--color-total)"
+                stopOpacity={0.35}
+              />
+              <stop
+                offset="95%"
+                stopColor="var(--color-total)"
+                stopOpacity={0.02}
+              />
             </linearGradient>
           </defs>
-          <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" />
+          <CartesianGrid
+            vertical={false}
+            strokeDasharray="3 3"
+            stroke="var(--border)"
+          />
           <XAxis
-            dataKey="month"
+            dataKey="label"
             tickLine={false}
             axisLine={false}
             tickMargin={8}
@@ -52,8 +62,8 @@ export default function ExpenseTrendAreaChart() {
           <Tooltip content={<ChartTooltipContent />} />
           <Area
             type="monotone"
-            dataKey="expenses"
-            stroke="var(--color-expenses)"
+            dataKey="total"
+            stroke="var(--color-total)"
             fill="url(#expensesGradient)"
             strokeWidth={2}
           />

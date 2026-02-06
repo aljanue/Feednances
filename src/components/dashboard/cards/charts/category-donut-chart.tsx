@@ -2,25 +2,24 @@
 
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 
+import type { CategoryBreakdownItem } from "@/lib/dtos/dashboard";
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 
-const data = [
-  { category: "Housing", value: 4200 },
-  { category: "Food", value: 2100 },
-  { category: "Transport", value: 1200 },
-  { category: "Utilities", value: 900 },
-  { category: "Entertainment", value: 650 },
-];
+interface CategoryDonutChartProps {
+  data: CategoryBreakdownItem[];
+}
 
-const chartConfig = {
-  housing: { label: "Housing", color: "var(--chart-1)" },
-  food: { label: "Food", color: "var(--chart-2)" },
-  transport: { label: "Transport", color: "var(--chart-3)" },
-  utilities: { label: "Utilities", color: "var(--chart-4)" },
-  entertainment: { label: "Entertainment", color: "var(--chart-5)" },
-};
+export default function CategoryDonutChart({
+  data,
+}: CategoryDonutChartProps) {
+  const chartConfig = data.reduce<Record<string, { label: string; color: string }>>(
+    (acc, item) => {
+      acc[item.id] = { label: item.category, color: item.color };
+      return acc;
+    },
+    {}
+  );
 
-export default function CategoryDonutChart() {
   return (
     <ChartContainer
       config={chartConfig}
@@ -31,7 +30,7 @@ export default function CategoryDonutChart() {
           <Tooltip content={<ChartTooltipContent hideLabel />} />
           <Pie
             data={data}
-            dataKey="value"
+            dataKey="total"
             nameKey="category"
             innerRadius={64}
             outerRadius={100}
@@ -39,12 +38,9 @@ export default function CategoryDonutChart() {
             stroke="var(--border)"
             strokeWidth={1}
           >
-            {data.map((entry) => {
-              const key = entry.category.toLowerCase();
-              return (
-                <Cell key={entry.category} fill={`var(--color-${key})`} />
-              );
-            })}
+            {data.map((entry) => (
+              <Cell key={entry.id} fill={entry.color} />
+            ))}
           </Pie>
         </PieChart>
       </ResponsiveContainer>

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { Button } from "../ui/button";
@@ -16,53 +17,38 @@ import {
 } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "../ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { cn } from "@/lib/utils";
+import {
+  createExpenseAction,
+  type CreateExpenseActionState,
+} from "@/lib/actions/expenses";
 
 export default function NewExpenseModal() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [date, setDate] = useState<Date>();
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const [isPending, startTransition] = useTransition();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const [state, dispatch] = useActionState(
+    createExpenseAction,
+    {} as CreateExpenseActionState,
+  );
 
-    const formData = new FormData(e.currentTarget);
-    const data = {
-      concept: formData.get("concept"),
-      amount: formData.get("amount"),
-      category: formData.get("category"),
-      expenseDate: date ? format(date, "yyyy-MM-dd") : undefined,
-    };
-
-    try {
-      const response = await fetch("/api/expense", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (response.ok) {
+  const handleFormAction = async (formData: FormData) => {
+    startTransition(async () => {
+      const result = await createExpenseAction(state, formData);
+      
+      if (result.success) {
         setOpen(false);
         setDate(undefined);
-        e.currentTarget.reset();
-        // TODO: Add success notification or refresh data
+        formRef.current?.reset();
+        router.refresh();
       } else {
-        // TODO: Handle error
-        console.error("Failed to create expense");
+        dispatch(formData); 
       }
-    } catch (error) {
-      console.error("Error creating expense:", error);
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   return (
@@ -77,7 +63,20 @@ export default function NewExpenseModal() {
             Add a new expense to your records. Fill in the details below.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
+        
+        <form 
+          ref={formRef}
+          onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget);
+            handleFormAction(formData);
+          }}
+        >
+          <input
+            type="hidden"
+            name="expenseDate"
+            value={date ? format(date, "yyyy-MM-dd") : ""}
+          />
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="concept">Concept</Label>
@@ -87,7 +86,11 @@ export default function NewExpenseModal() {
                 placeholder="Groceries, rent, etc."
                 required
               />
+              {state?.fieldErrors?.concept && (
+                <p className="text-sm text-red-500">{state.fieldErrors.concept}</p>
+              )}
             </div>
+            
             <div className="grid gap-2">
               <Label htmlFor="amount">Amount</Label>
               <Input
@@ -99,7 +102,11 @@ export default function NewExpenseModal() {
                 placeholder="0.00"
                 required
               />
+              {state?.fieldErrors?.amount && (
+                <p className="text-sm text-red-500">{state.fieldErrors.amount}</p>
+              )}
             </div>
+
             <div className="grid gap-2">
               <Label htmlFor="category">Category</Label>
               <Input
@@ -108,7 +115,11 @@ export default function NewExpenseModal() {
                 placeholder="Food, Transport, etc."
                 required
               />
+              {state?.fieldErrors?.category && (
+                <p className="text-sm text-red-500">{state.fieldErrors.category}</p>
+              )}
             </div>
+
             <div className="grid gap-2">
               <Label htmlFor="expenseDate">Date</Label>
               <Popover>
@@ -117,7 +128,7 @@ export default function NewExpenseModal() {
                     variant="outline"
                     className={cn(
                       "w-full justify-start text-left font-normal",
-                      !date && "text-muted-foreground"
+                      !date && "text-muted-foreground",
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
@@ -135,12 +146,21 @@ export default function NewExpenseModal() {
               </Popover>
             </div>
           </div>
+
+          {state?.error && (
+            <p className="text-sm text-red-500 mb-4">{state.error}</p>
+          )}
+
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading || !date}>
-              {isLoading ? "Creating..." : "Create Expense"}
+            <Button type="submit" disabled={isPending || !date}>
+              {isPending ? "Creating..." : "Create Expense"}
             </Button>
           </DialogFooter>
         </form>
