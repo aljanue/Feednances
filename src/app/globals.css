@@ -82,11 +82,11 @@
 }
 
 .dark {
-  --background: oklch(0.129 0.042 264.695);
+  --background: #0a0c0a;
   --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
+  --card: #121412;
   --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
+  --popover: #121412;
   --popover-foreground: oklch(0.984 0.003 247.858);
   --primary: #2bee6c;
   --primary-foreground: oklch(0.208 0.042 265.755);

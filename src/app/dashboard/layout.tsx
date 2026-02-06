@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import DashboardNavbar from "@/components/dashboard/navbar";
+import DashboardTopbar from "@/components/dashboard/topbar";
 
 export const metadata = {
   title: "Dashboard | Feednances",
@@ -13,7 +15,18 @@ export const metadata = {
   },
 };
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const menuItems = [
+    { name: "Dashboard", href: "/dashboard" },
+    { name: "Expenses", href: "/dashboard/expenses" },
+    { name: "Subscriptions", href: "/dashboard/subscriptions" },
+    { name: "Reports", href: "/dashboard/reports" },
+    { name: "Settings", href: "/dashboard/settings" },
+  ];
   const session = await auth();
 
   if (!session?.user?.id) redirect("/login");
@@ -27,8 +40,26 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   return (
-    <>
-      {children}
-    </>
+    <div className="flex h-screen w-full overflow-hidden bg-background">
+      {" "}
+      <DashboardNavbar
+        username={user?.username ?? ""}
+        fullName={user?.fullName ?? ""}
+        menuItems={menuItems}
+      />
+      <main className="flex-1 flex flex-col min-w-0 h-full">
+        {" "}
+        <DashboardTopbar
+          menuItems={menuItems}
+          username={user?.username ?? ""}
+          fullName={user?.fullName ?? ""}
+        />
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-background">
+          <div className="max-w-7xl mx-auto">
+            {children}
+          </div>
+        </div>
+      </main>
+    </div>
   );
 }
