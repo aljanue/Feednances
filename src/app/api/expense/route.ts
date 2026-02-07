@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { expenses } from "@/db/schema";
+import { createNotificationForUser } from "@/lib/services/notifications";
 import { formatAmount } from "@/utils/format-data.utils";
 import { validateRequest } from "@/utils/user.utils";
 
@@ -14,6 +15,7 @@ interface CreateExpenseDTO {
 }
 
 export async function POST(req: NextRequest) {
+  let userId: string | undefined;
   try {
     const body: CreateExpenseDTO = (await req.json()) as CreateExpenseDTO;
 
@@ -35,6 +37,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    userId = user.id;
+
     const amountFormatted = formatAmount(body.amount);
 
     await db.insert(expenses).values({
@@ -47,12 +51,33 @@ export async function POST(req: NextRequest) {
       isRecurring: body.isRecurring || false,
     });
 
+    try {
+      await createNotificationForUser(user.id, {
+        text: `Expense created: ${body.concept}`,
+        type: "success",
+      });
+    } catch {
+      // Notification failures should not block the request.
+    }
+
     return NextResponse.json(
       { success: true, message: "Expense saved" },
       { status: 201 },
     );
   } catch (error) {
     console.error("Error saving expense:", error);
+
+    if (userId) {
+      try {
+        await createNotificationForUser(userId, {
+          text: "Expense creation failed.",
+          type: "error",
+        });
+      } catch {
+        // Ignore notification failures.
+      }
+    }
+
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },

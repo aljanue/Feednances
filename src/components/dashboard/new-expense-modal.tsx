@@ -4,6 +4,8 @@ import { useActionState, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
+import { toast } from "sonner";
+import { useSWRConfig } from "swr";
 import { Button } from "../ui/button";
 import { Calendar } from "../ui/calendar";
 import {
@@ -23,9 +25,12 @@ import {
   createExpenseAction,
   type CreateExpenseActionState,
 } from "@/lib/actions/expenses";
+import type { NotificationsResponseDTO } from "@/lib/dtos/notifications";
+import { NotificationToast } from "@/components/shared/notification-toast";
 
 export default function NewExpenseModal() {
   const router = useRouter();
+  const { mutate } = useSWRConfig();
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState<Date>();
   const formRef = useRef<HTMLFormElement | null>(null);
@@ -41,10 +46,64 @@ export default function NewExpenseModal() {
       const result = await createExpenseAction(state, formData);
       
       if (result.success) {
+        toast.custom(
+          () => (
+            <NotificationToast
+              title="Expense created"
+              description="Your expense has been added successfully."
+              type="success"
+            />
+          ),
+          { duration: 3500 },
+        );
+
+        if (result.notification) {
+          mutate(
+            "/api/notifications",
+            (current: NotificationsResponseDTO | undefined) => {
+              if (!current) return current;
+              return {
+                ...current,
+                items: [result.notification, ...current.items].slice(0, 10),
+              };
+            },
+            { revalidate: false },
+          );
+        }
+
+        mutate("/api/notifications");
         setOpen(false);
         setDate(undefined);
         formRef.current?.reset();
         router.refresh();
+      } else if (result.error) {
+        toast.custom(
+          () => (
+            <NotificationToast
+              title="Expense failed"
+              description={result.error}
+              type="error"
+            />
+          ),
+          { duration: 4000 },
+        );
+
+        if (result.notification) {
+          mutate(
+            "/api/notifications",
+            (current: NotificationsResponseDTO | undefined) => {
+              if (!current) return current;
+              return {
+                ...current,
+                items: [result.notification, ...current.items].slice(0, 10),
+              };
+            },
+            { revalidate: false },
+          );
+        }
+
+        mutate("/api/notifications");
+        dispatch(formData);
       } else {
         dispatch(formData); 
       }

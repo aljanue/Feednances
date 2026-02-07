@@ -9,8 +9,10 @@ import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { calculateNextRun } from "@/utils/subscriptions.utils";
+import { createNotificationForUser } from "@/lib/services/notifications";
 
 export async function POST(req: NextRequest) {
+  let userId: string | undefined;
   try {
     const body: CreateSubscriptionDTO =
       (await req.json()) as CreateSubscriptionDTO;
@@ -46,6 +48,8 @@ export async function POST(req: NextRequest) {
         },
       );
     }
+
+    userId = user.id;
 
     const timeUnit = await db.query.timeUnits.findFirst({
       where: eq(timeUnits.value, body.periodType.toLowerCase()),
@@ -109,6 +113,17 @@ export async function POST(req: NextRequest) {
 
     revalidatePath("/dashboard");
 
+    try {
+      await createNotificationForUser(user.id, {
+        text: shouldChargeNow
+          ? `Subscription created: ${body.concept}`
+          : `Subscription scheduled: ${body.concept}`,
+        type: "success",
+      });
+    } catch {
+      // Notification failures should not block the request.
+    }
+
     return NextResponse.json({
       success: true,
       message: shouldChargeNow
@@ -117,6 +132,18 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("Error saving subscription:", error);
+
+    if (userId) {
+      try {
+        await createNotificationForUser(userId, {
+          text: "Subscription creation failed.",
+          type: "error",
+        });
+      } catch {
+        // Ignore notification failures.
+      }
+    }
+
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },

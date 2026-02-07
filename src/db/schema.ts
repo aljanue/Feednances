@@ -1,14 +1,15 @@
-import { 
-  pgTable, 
-  uuid, 
-  text, 
-  decimal, 
-  timestamp, 
-  boolean, 
-  integer, 
-  date, 
-  primaryKey, 
-  index 
+import {
+  pgTable,
+  uuid,
+  text,
+  decimal,
+  timestamp,
+  boolean,
+  integer,
+  date,
+  primaryKey,
+  index,
+  pgEnum,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
@@ -74,6 +75,55 @@ export const timeUnits = pgTable('time_units', {
   value: text('value').notNull().unique(),
 });
 
+export const notificationTypeEnum = pgEnum('notification_type', [
+  'success',
+  'info',
+  'warning',
+  'error',
+]);
+
+/**
+ * TABLE: notification
+ * Global notification catalog. Per-user state lives in user_notifications.
+ */
+export const notifications = pgTable('notification', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  text: text('text').notNull(),
+  type: notificationTypeEnum('type').notNull(),
+  createdAt: timestamp('created_at', { mode: 'date' })
+    .defaultNow()
+    .notNull(),
+});
+
+/**
+ * TABLE: user_notifications
+ * Tracks read state per user and notification.
+ */
+export const userNotifications = pgTable(
+  'user_notifications',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    notificationId: uuid('notification_id')
+      .notNull()
+      .references(() => notifications.id, { onDelete: 'cascade' }),
+    isRead: boolean('is_read').default(false).notNull(),
+    readAt: timestamp('read_at', { mode: 'date' }),
+    createdAt: timestamp('created_at', { mode: 'date' })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    userIdIdx: index('user_notifications_user_id_idx').on(table.userId),
+    isReadIdx: index('user_notifications_is_read_idx').on(table.isRead),
+    createdAtIdx: index('user_notifications_created_at_idx').on(
+      table.createdAt,
+    ),
+  }),
+);
+
 /**
  * TABLE: expenses
  * Individual transaction history.
@@ -117,6 +167,7 @@ export const subscriptions = pgTable('subscriptions', {
 export const usersRelations = relations(users, ({ many }) => ({
   expenses: many(expenses),
   subscriptions: many(subscriptions),
+  userNotifications: many(userNotifications),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -143,3 +194,24 @@ export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
     references: [timeUnits.id],
   }),
 }));
+
+export const notificationsRelations = relations(
+  notifications,
+  ({ many }) => ({
+    userNotifications: many(userNotifications),
+  }),
+);
+
+export const userNotificationsRelations = relations(
+  userNotifications,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [userNotifications.userId],
+      references: [users.id],
+    }),
+    notification: one(notifications, {
+      fields: [userNotifications.notificationId],
+      references: [notifications.id],
+    }),
+  }),
+);

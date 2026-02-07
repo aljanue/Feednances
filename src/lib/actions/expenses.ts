@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { db } from "@/db";
 import { expenses } from "@/db/schema";
+import type { NotificationItemDTO } from "@/lib/dtos/notifications";
+import { createNotificationForUser } from "@/lib/services/notifications";
 import { formatAmount } from "@/utils/format-data.utils";
 import { validateExpenseForm } from "@/lib/validations/expense";
 
@@ -13,6 +15,7 @@ export interface CreateExpenseActionState {
   error?: string;
   fieldErrors?: Record<string, string>;
   actionId?: number;
+  notification?: NotificationItemDTO;
 }
 
 export async function createExpenseAction(
@@ -47,17 +50,39 @@ export async function createExpenseAction(
     };
   }
 
-  await db.insert(expenses).values({
-    amount: amountFormatted,
-    concept,
-    category,
-    userId: session.user.id,
-    date: new Date(),
-    expenseDate: new Date(expenseDate),
-    isRecurring: false,
-  });
+  try {
+    await db.insert(expenses).values({
+      amount: amountFormatted,
+      concept,
+      category,
+      userId: session.user.id,
+      date: new Date(),
+      expenseDate: new Date(expenseDate),
+      isRecurring: false,
+    });
 
-  revalidatePath("/dashboard");
+    const notification = await createNotificationForUser(session.user.id, {
+      text: `Expense created: ${concept}`,
+      type: "success",
+    });
 
-  return { success: true, actionId: Date.now() };
+    revalidatePath("/dashboard");
+
+    return { success: true, actionId: Date.now(), notification };
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unable to create expense.";
+
+    let notification: NotificationItemDTO | undefined;
+    try {
+      notification = await createNotificationForUser(session.user.id, {
+        text: "Expense creation failed.",
+        type: "error",
+      });
+    } catch {
+      notification = undefined;
+    }
+
+    return { error: message, actionId: Date.now(), notification };
+  }
 }
