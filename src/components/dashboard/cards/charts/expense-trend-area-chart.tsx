@@ -59,7 +59,7 @@ export default function ExpenseTrendAreaChart({
             tickMargin={8}
             tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
           />
-          <Tooltip content={<ChartTooltipContent />} />
+          <Tooltip content={<ChartTooltipContent />} cursor={{ fill: "var(--muted)", opacity: 0.15 }} />
           <Area
             type="monotone"
             dataKey="total"

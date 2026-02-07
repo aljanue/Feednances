@@ -79,17 +79,24 @@ export default function GraphCard({
 
     return (
         <div className="h-full w-full min-h-0 flex flex-col gap-5">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-                <div className="space-y-1">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            {/* Header: Mejorado para responsividad sutil */}
+            <div className="flex items-start justify-between gap-2">
+                <div className="space-y-1 flex-1 min-w-0">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider truncate">
                         {meta.label}
                     </p>
-                    <p className="text-3xl font-semibold leading-tight">
+                    <p className="text-2xl md:text-3xl font-bold leading-none tracking-tight truncate">
                         {meta.value}
                     </p>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
-                    <TimeRangeSelect value={timeRange} onValueChange={setTimeRange} />
+                
+                {/* Controles: Ahora no saltan de línea y se mantienen compactos */}
+                <div className="flex items-center gap-1.5 shrink-0 h-9">
+                    <TimeRangeSelect 
+                        value={timeRange} 
+                        onValueChange={setTimeRange} 
+                    />
+                    <div className="border-l h-4 mx-0.5 border-border/50 hidden xs:block" />
                     <EllipsisMenu items={menuItems} />
                 </div>
             </div>

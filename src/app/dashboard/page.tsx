@@ -48,10 +48,10 @@ export default async function HomePage() {
         </div>
       </div>
       <div className="flex md:flex-row flex-col-reverse gap-4">
-        <div className="p-8 border border-solid border-muted bg-card overflow-x-auto rounded-lg md:max-w-sm max-w-full flex flex-col">
+        <div className="p-6 xl:min-w-84 lg:min-w-72 min-w-auto border border-solid border-muted bg-card overflow-x-auto rounded-lg md:max-w-sm max-w-full flex flex-col">
           <SubscriptionsCard items={dashboardData.subscriptions} />
         </div>
-        <div className="p-8 border border-solid border-muted bg-card overflow-x-auto rounded-lg flex-1 min-h-62 flex flex-col">
+        <div className="p-6 border border-solid border-muted bg-card overflow-x-auto rounded-lg flex-1 min-h-62 flex flex-col">
           <RecentExpensesCard items={dashboardData.recentExpenses} />
         </div>
       </div>

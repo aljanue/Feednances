@@ -27,7 +27,7 @@ export default function CategoryDonutChart({
     >
       <ResponsiveContainer width="100%" height="100%">
         <PieChart margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
-          <Tooltip content={<ChartTooltipContent hideLabel />} />
+          <Tooltip content={<ChartTooltipContent hideLabel />} cursor={{ fill: "var(--muted)", opacity: 0.15 }} />
           <Pie
             data={data}
             dataKey="total"

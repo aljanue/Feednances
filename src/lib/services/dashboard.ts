@@ -385,6 +385,7 @@ export async function getDashboardData(
       amount: toNumber(expense.amount),
       category: expense.category,
       expenseDate: expense.expenseDate.toISOString(),
+      isRecurring: Boolean(expense.isRecurring),
     }));
 
   const subscriptionList: SubscriptionDTO[] = subscriptionRows.map((item) => ({
@@ -393,6 +394,9 @@ export async function getDashboardData(
     amount: toNumber(item.amount),
     category: item.category,
     active: Boolean(item.active),
+    nextDate: item.nextRun.toISOString(),
+    timeValue: item.frequencyValue,
+    timeType: item.timeUnitId as "day" | "week" | "month" | "year",
   }));
 
   return {

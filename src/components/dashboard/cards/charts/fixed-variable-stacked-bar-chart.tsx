@@ -54,7 +54,7 @@ export default function FixedVariableStackedBarChart({
             tickMargin={8}
             tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
           />
-          <Tooltip content={<ChartTooltipContent indicator="line" />} />
+          <Tooltip content={<ChartTooltipContent indicator="line" />} cursor={{ fill: "var(--muted)", opacity: 0.15 }} />
           <Bar
             dataKey="fixed"
             stackId="expenses"

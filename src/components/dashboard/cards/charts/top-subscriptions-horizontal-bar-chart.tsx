@@ -55,7 +55,7 @@ export default function TopSubscriptionsHorizontalBarChart({
             width={90}
             tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
           />
-          <Tooltip content={<ChartTooltipContent />} />
+          <Tooltip content={<ChartTooltipContent />} cursor={{ fill: "var(--muted)", opacity: 0.15 }} />
           <Bar
             dataKey="total"
             fill="var(--color-total)"

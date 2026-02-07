@@ -71,6 +71,7 @@ export interface RecentExpenseDTO {
   amount: number;
   category: string;
   expenseDate: string;
+  isRecurring: boolean;
 }
 
 export interface SubscriptionDTO {
@@ -79,6 +80,9 @@ export interface SubscriptionDTO {
   amount: number;
   category: string;
   active: boolean;
+  nextDate: string;
+  timeValue: number;
+  timeType: "day" | "week" | "month" | "year";
 }
 
 export interface DashboardDTO {
