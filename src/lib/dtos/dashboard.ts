@@ -63,6 +63,8 @@ export interface NumberCardDTO {
 export interface AverageCardDTO {
   label: string;
   value: number;
+  currentMonthTotal: number;
+  percentageDiff: number;
 }
 
 export interface RecentExpenseDTO {

@@ -1,8 +1,20 @@
 import { and, desc, eq, gte, lte } from "drizzle-orm";
-import { eachMonthOfInterval, format, startOfMonth } from "date-fns";
+import {
+  addDays,
+  differenceInCalendarMonths,
+  differenceInDays,
+  eachDayOfInterval,
+  eachMonthOfInterval,
+  eachWeekOfInterval,
+  format,
+  startOfDay,
+  startOfMonth,
+  startOfWeek,
+} from "date-fns";
 import { db } from "@/db";
 import { expenses, subscriptions } from "@/db/schema";
 import type {
+  AverageCardDTO,
   CategoryBreakdownItem,
   DashboardDTO,
   ExpenseTrendPoint,
@@ -31,6 +43,8 @@ const timeRanges: TimeRangeValue[] = [
   "last-year",
 ];
 
+// --- Helpers ---
+
 function toNumber(value: string | number | null | undefined) {
   if (value === null || value === undefined) return 0;
   return typeof value === "number" ? value : Number.parseFloat(value);
@@ -45,13 +59,33 @@ function percentChange(current: number, previous: number) {
   return (current - previous) / previous;
 }
 
+// --- Key Generators ---
+
 function monthKey(date: Date) {
   return format(startOfMonth(date), "yyyy-MM");
 }
 
+function dayKey(date: Date) {
+  return format(startOfDay(date), "yyyy-MM-dd");
+}
+
+function weekKey(date: Date) {
+  return format(startOfWeek(date, { weekStartsOn: 1 }), "yyyy-MM-dd");
+}
+
+// --- Formatters ---
+
 function formatMonthLabel(date: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
+    timeZone,
+  }).format(date);
+}
+
+function formatDayLabel(date: Date, timeZone: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
     timeZone,
   }).format(date);
 }
@@ -62,6 +96,8 @@ function slugify(value: string) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 }
+
+// --- Builders ---
 
 function buildCategoryBreakdown(
   items: { category: string; amount: string | number }[],
@@ -97,31 +133,67 @@ function buildCategoryBreakdown(
   });
 }
 
-function buildMonthlyExpenseTrend(
+function buildExpenseTrend(
   items: { expenseDate: Date; amount: string | number }[],
   rangeStart: Date,
   rangeEnd: Date,
   timeZone: string,
 ): ExpenseTrendPoint[] {
-  const buckets = eachMonthOfInterval({
-    start: startOfMonth(rangeStart),
-    end: startOfMonth(rangeEnd),
-  });
+  const daysDiff = differenceInDays(rangeEnd, rangeStart);
+
+  let buckets: Date[] = [];
+  let getKey: (date: Date) => string;
+  let getLabel: (date: Date) => string;
+
+  if (daysDiff <= 35) {
+    // 1. Primer mes: Diario
+    // Label: "Jan 1, Jan 2..."
+    buckets = eachDayOfInterval({ start: rangeStart, end: rangeEnd });
+    getKey = dayKey;
+    getLabel = (d) => formatDayLabel(d, timeZone);
+  } else if (daysDiff <= 65) {
+    // 2. Segundo mes: Cada 2 días
+    // Label: "Jan 1, Jan 3..." (Usamos día para evitar duplicados en labels)
+    let current = startOfDay(rangeStart);
+    const end = startOfDay(rangeEnd);
+    while (current <= end) {
+      buckets.push(current);
+      current = addDays(current, 2);
+    }
+    getKey = (d) => {
+      const diff = differenceInDays(d, rangeStart);
+      const offset = Math.floor(diff / 2) * 2;
+      return dayKey(addDays(rangeStart, offset));
+    };
+    getLabel = (d) => formatDayLabel(d, timeZone);
+  } else if (daysDiff <= 130) {
+    buckets = eachWeekOfInterval(
+      { start: rangeStart, end: rangeEnd },
+      { weekStartsOn: 1 },
+    );
+    getKey = weekKey;
+    getLabel = (d) => formatDayLabel(d, timeZone);
+  } else {
+    buckets = eachMonthOfInterval({ start: rangeStart, end: rangeEnd });
+    getKey = monthKey;
+    getLabel = (d) => formatMonthLabel(d, timeZone);
+  }
 
   const totals = new Map<string, number>();
   for (const bucket of buckets) {
-    totals.set(monthKey(bucket), 0);
+    totals.set(getKey(bucket), 0);
   }
 
   for (const item of items) {
-    const key = monthKey(item.expenseDate);
-    if (!totals.has(key)) continue;
-    totals.set(key, (totals.get(key) ?? 0) + toNumber(item.amount));
+    const key = getKey(item.expenseDate);
+    if (totals.has(key)) {
+      totals.set(key, (totals.get(key) ?? 0) + toNumber(item.amount));
+    }
   }
 
   return buckets.map((bucket) => ({
-    label: formatMonthLabel(bucket, timeZone),
-    total: totals.get(monthKey(bucket)) ?? 0,
+    label: getLabel(bucket),
+    total: totals.get(getKey(bucket)) ?? 0,
   }));
 }
 
@@ -189,7 +261,7 @@ function buildGraphRangeData(
   timeZone: string,
   topSubscriptions: TopSubscriptionItem[],
 ): GraphRangeData {
-  const expenseTrends = buildMonthlyExpenseTrend(
+  const expenseTrends = buildExpenseTrend(
     items,
     rangeStart,
     rangeEnd,
@@ -222,6 +294,8 @@ function buildGraphRangeData(
     },
   };
 }
+
+// --- Main Service ---
 
 export async function getDashboardData(
   userId: string,
@@ -370,11 +444,29 @@ export async function getDashboardData(
       expense.expenseDate >= averageRange.start &&
       expense.expenseDate <= averageRange.end,
   );
-  const averageMonthlyTotal = sumExpenses(averageExpenses) / 6;
 
-  const averageCard = {
+  const firstExpenseDate =
+    averageExpenses[averageExpenses.length - 1]?.expenseDate ?? now;
+
+  const monthsActive = Math.max(
+    1,
+    Math.min(6, differenceInCalendarMonths(now, firstExpenseDate) + 1),
+  );
+
+  const averageMonthlyTotal = sumExpenses(averageExpenses) / monthsActive;
+
+  const currentMonthTotal = sumExpenses(monthExpenses);
+
+  const percentageDiff =
+    averageMonthlyTotal === 0
+      ? 0
+      : ((currentMonthTotal - averageMonthlyTotal) / averageMonthlyTotal) * 100;
+
+  const averageCard: AverageCardDTO = {
     label: "Average Monthly Expenses",
     value: averageMonthlyTotal,
+    currentMonthTotal: currentMonthTotal,
+    percentageDiff: percentageDiff,
   };
 
   const recentExpenses: RecentExpenseDTO[] = expenseRows
