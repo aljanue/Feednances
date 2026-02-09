@@ -84,7 +84,7 @@ export interface SubscriptionDTO {
   active: boolean;
   nextDate: string;
   timeValue: number;
-  timeType: "day" | "week" | "month" | "year";
+  timeType: string;
 }
 
 export interface DashboardDTO {

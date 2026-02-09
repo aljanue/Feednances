@@ -1,15 +1,11 @@
 import { and, desc, eq, gte, lte } from "drizzle-orm";
 import {
-  addDays,
   differenceInCalendarMonths,
-  differenceInDays,
   eachDayOfInterval,
   eachMonthOfInterval,
-  eachWeekOfInterval,
   format,
   startOfDay,
   startOfMonth,
-  startOfWeek,
 } from "date-fns";
 import { db } from "@/db";
 import { expenses, subscriptions } from "@/db/schema";
@@ -35,6 +31,7 @@ import {
   getRangeForTimeValue,
   getYearRange,
 } from "@/lib/utils/date-range";
+import { formatTimeAbbreviationByType } from "@/utils/format-data.utils";
 
 const timeRanges: TimeRangeValue[] = [
   "last-month",
@@ -69,9 +66,6 @@ function dayKey(date: Date) {
   return format(startOfDay(date), "yyyy-MM-dd");
 }
 
-function weekKey(date: Date) {
-  return format(startOfWeek(date, { weekStartsOn: 1 }), "yyyy-MM-dd");
-}
 
 // --- Formatters ---
 
@@ -139,45 +133,9 @@ function buildExpenseTrend(
   rangeEnd: Date,
   timeZone: string,
 ): ExpenseTrendPoint[] {
-  const daysDiff = differenceInDays(rangeEnd, rangeStart);
-
-  let buckets: Date[] = [];
-  let getKey: (date: Date) => string;
-  let getLabel: (date: Date) => string;
-
-  if (daysDiff <= 35) {
-    // 1. Primer mes: Diario
-    // Label: "Jan 1, Jan 2..."
-    buckets = eachDayOfInterval({ start: rangeStart, end: rangeEnd });
-    getKey = dayKey;
-    getLabel = (d) => formatDayLabel(d, timeZone);
-  } else if (daysDiff <= 65) {
-    // 2. Segundo mes: Cada 2 días
-    // Label: "Jan 1, Jan 3..." (Usamos día para evitar duplicados en labels)
-    let current = startOfDay(rangeStart);
-    const end = startOfDay(rangeEnd);
-    while (current <= end) {
-      buckets.push(current);
-      current = addDays(current, 2);
-    }
-    getKey = (d) => {
-      const diff = differenceInDays(d, rangeStart);
-      const offset = Math.floor(diff / 2) * 2;
-      return dayKey(addDays(rangeStart, offset));
-    };
-    getLabel = (d) => formatDayLabel(d, timeZone);
-  } else if (daysDiff <= 130) {
-    buckets = eachWeekOfInterval(
-      { start: rangeStart, end: rangeEnd },
-      { weekStartsOn: 1 },
-    );
-    getKey = weekKey;
-    getLabel = (d) => formatDayLabel(d, timeZone);
-  } else {
-    buckets = eachMonthOfInterval({ start: rangeStart, end: rangeEnd });
-    getKey = monthKey;
-    getLabel = (d) => formatMonthLabel(d, timeZone);
-  }
+  const buckets = eachDayOfInterval({ start: rangeStart, end: rangeEnd });
+  const getKey = dayKey;
+  const getLabel = (d: Date) => formatDayLabel(d, timeZone);
 
   const totals = new Map<string, number>();
   for (const bucket of buckets) {
@@ -329,6 +287,9 @@ export async function getDashboardData(
       eq(subscriptions.userId, userId),
       eq(subscriptions.active, true),
     ),
+    with: {
+      timeUnit: true,
+    },
     orderBy: [desc(subscriptions.amount)],
     limit: 5,
   });
@@ -488,7 +449,7 @@ export async function getDashboardData(
     active: Boolean(item.active),
     nextDate: item.nextRun.toISOString(),
     timeValue: item.frequencyValue,
-    timeType: item.timeUnitId as "day" | "week" | "month" | "year",
+    timeType: item.timeUnit ? formatTimeAbbreviationByType(item.timeUnit.value) : item.timeUnitId,
   }));
 
   return {

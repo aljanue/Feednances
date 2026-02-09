@@ -1,7 +1,6 @@
 import {
   endOfDay,
   endOfMonth,
-  startOfDay,
   startOfMonth,
   startOfYear,
   subMonths,
@@ -22,23 +21,23 @@ export function getRangeForTimeValue(
   switch (value) {
     case "last-month":
       return {
-        start: startOfDay(subMonths(now, 1)),
-        end: endOfDay(now),
+        start: startOfMonth(now),
+        end: endOfMonth(now),
       };
     case "last-3-months":
       return {
-        start: startOfDay(subMonths(now, 3)),
-        end: endOfDay(now),
+        start: startOfMonth(subMonths(now, 2)),
+        end: endOfMonth(now),
       };
     case "last-6-months":
       return {
-        start: startOfDay(subMonths(now, 6)),
-        end: endOfDay(now),
+        start: startOfMonth(subMonths(now, 5)),
+        end: endOfMonth(now),
       };
     case "last-year":
       return {
-        start: startOfDay(subYears(now, 1)),
-        end: endOfDay(now),
+        start: startOfMonth(subMonths(now, 11)),
+        end: endOfMonth(now),
       };
   }
 }

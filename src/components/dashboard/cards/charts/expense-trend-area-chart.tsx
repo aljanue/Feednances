@@ -26,6 +26,7 @@ interface ExpenseTrendAreaChartProps {
 export default function ExpenseTrendAreaChart({
   data,
 }: ExpenseTrendAreaChartProps) {
+  const showXAxisLabels = data.length <= 16;
   return (
     <ChartContainer
       config={chartConfig}
@@ -57,7 +58,7 @@ export default function ExpenseTrendAreaChart({
             tickLine={false}
             axisLine={false}
             tickMargin={8}
-            tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
+            tick={showXAxisLabels ? { fill: "var(--muted-foreground)", fontSize: 12 } : false}
           />
           <Tooltip content={<ChartTooltipContent />} cursor={{ fill: "var(--muted)", opacity: 0.15 }} />
           <Area

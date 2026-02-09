@@ -5,7 +5,6 @@ import { createNotificationForUser } from "@/lib/services/notifications";
 import { formatAmount } from "@/utils/format-data.utils";
 import { validateRequest } from "@/utils/user.utils";
 
-// DTO (Data Transfer Object): Contrato de lo que esperamos recibir del móvil
 interface CreateExpenseDTO {
   amount: number | string;
   concept: string;
@@ -57,7 +56,6 @@ export async function POST(req: NextRequest) {
         type: "success",
       });
     } catch {
-      // Notification failures should not block the request.
     }
 
     return NextResponse.json(

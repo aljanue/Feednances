@@ -72,7 +72,7 @@ function SubscriptionRow({
       <div className="flex flex-col">
         <p className="text-md font-semibold">{subscription.name}</p>
         <p className="text-sm text-muted-foreground">
-          {formatCurrency(subscription.amount)} / {subscription.timeValue} Mo
+          {formatCurrency(subscription.amount)} / {subscription.timeValue} {subscription.timeType}
         </p>
       </div>
       <div>
