@@ -7,6 +7,7 @@ import {
   CalendarClock,
   LineChart,
   Settings,
+  Tags,
 } from "lucide-react";
 import MenuItem from "./menu-item";
 
@@ -15,6 +16,7 @@ const menuIcons: Record<
   React.ComponentType<{ className?: string }>
 > = {
   Dashboard: LayoutGrid,
+  Categories: Tags,
   Expenses: ReceiptText,
   Subscriptions: CalendarClock,
   Reports: LineChart,

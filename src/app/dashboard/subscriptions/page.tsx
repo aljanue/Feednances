@@ -1,3 +1,3 @@
-export default function HomePage() {
-  return <p>Hello World from Subscriptions!</p>;
+export default function SubscriptionsPage() {
+  return <section></section>;
 }

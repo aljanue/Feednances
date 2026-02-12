@@ -93,7 +93,7 @@ function NumberCardChange({
 
   if (value === 0) {
     return (
-      <p className="text-sm text-muted-foreground mt-2">
+      <p className="text-sm italic text-muted-foreground mt-2">
         No expenses yet. Add your first transaction to start tracking.
       </p>
     );

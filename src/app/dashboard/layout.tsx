@@ -22,6 +22,7 @@ export default async function DashboardLayout({
 }) {
   const menuItems = [
     { name: "Dashboard", href: "/dashboard" },
+    { name: "Categories", href: "/dashboard/categories" },
     { name: "Expenses", href: "/dashboard/expenses" },
     { name: "Subscriptions", href: "/dashboard/subscriptions" },
     { name: "Reports", href: "/dashboard/reports" },

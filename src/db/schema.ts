@@ -10,30 +10,74 @@ import {
   primaryKey,
   index,
   pgEnum,
-} from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+} from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 
 /**
  * TABLE: user
- * Core identity table. 
+ * Core identity table.
  * 'userKey' stores the SHA-256 hash of the API key for secure mobile access.
  * 'emailVerified' and 'image' are required for Auth.js compatibility.
  */
-export const users = pgTable('user', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  username: text('username').notNull().unique(),
-  fullName: text('name'),
-  email: text('email').unique().notNull(),
+export const users = pgTable("user", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  username: text("username").notNull().unique(),
+  fullName: text("name"),
+  email: text("email").unique().notNull(),
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),
-  
-  userKey: text('secret_key').unique(),
-  password: text('password'),
-  deleted: boolean('deleted').default(false),
-  firstLogin: boolean('first_login').default(true).notNull(),
-  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
-  telegramChatId: text('telegram_chat_id')
+
+  userKey: text("secret_key").unique(),
+  password: text("password"),
+  deleted: boolean("deleted").default(false),
+  firstLogin: boolean("first_login").default(true).notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  telegramChatId: text("telegram_chat_id"),
 });
+
+/**
+ * TABLE: categories
+ * User-defined expense categories for better organization.
+ * Indexed by 'userId' to ensure fast retrieval in the Dashboard and Expense forms.
+ * Note: This is a simple implementation. In a more complex system, categories might be a separate entity with relationships to expenses.
+ */
+export const categories = pgTable(
+  "categories",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: text("name").notNull(),
+    icon: text("icon"),
+    hexColor: text("hex_color"),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+    active: boolean("active").default(true),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => ({
+    userIdIdx: index("categories_userId_idx").on(table.userId),
+  }),
+);
+
+/**
+ * TABLE: user_hidden_categories
+ * Join table to track which categories a user has hidden in the Dashboard.
+ * This allows users to customize their view without deleting categories.
+ * Indexed by 'userId' for efficient lookups when rendering the Dashboard.
+ */
+export const userHiddenCategories = pgTable(
+  "user_hidden_categories",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    categoryId: uuid("category_id")
+      .notNull()
+      .references(() => categories.id, { onDelete: "cascade" }),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.userId, table.categoryId] }),
+    userIdIdx: index("user_hidden_categories_userId_idx").on(table.userId),
+  })
+);
 
 /**
  * TABLE: account
@@ -62,37 +106,35 @@ export const accounts = pgTable(
       columns: [table.provider, table.providerAccountId],
     }),
     userIdIdx: index("account_userId_idx").on(table.userId),
-  })
+  }),
 );
 
 /**
  * TABLE: time_units
  * Reference table for subscription intervals (e.g., monthly, yearly).
  */
-export const timeUnits = pgTable('time_units', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  name: text('name').notNull().unique(),
-  value: text('value').notNull().unique(),
+export const timeUnits = pgTable("time_units", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull().unique(),
+  value: text("value").notNull().unique(),
 });
 
-export const notificationTypeEnum = pgEnum('notification_type', [
-  'success',
-  'info',
-  'warning',
-  'error',
+export const notificationTypeEnum = pgEnum("notification_type", [
+  "success",
+  "info",
+  "warning",
+  "error",
 ]);
 
 /**
  * TABLE: notification
  * Global notification catalog. Per-user state lives in user_notifications.
  */
-export const notifications = pgTable('notification', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  text: text('text').notNull(),
-  type: notificationTypeEnum('type').notNull(),
-  createdAt: timestamp('created_at', { mode: 'date' })
-    .defaultNow()
-    .notNull(),
+export const notifications = pgTable("notification", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  text: text("text").notNull(),
+  type: notificationTypeEnum("type").notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 });
 
 /**
@@ -100,25 +142,23 @@ export const notifications = pgTable('notification', {
  * Tracks read state per user and notification.
  */
 export const userNotifications = pgTable(
-  'user_notifications',
+  "user_notifications",
   {
-    id: uuid('id').defaultRandom().primaryKey(),
-    userId: uuid('user_id')
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
       .notNull()
-      .references(() => users.id, { onDelete: 'cascade' }),
-    notificationId: uuid('notification_id')
+      .references(() => users.id, { onDelete: "cascade" }),
+    notificationId: uuid("notification_id")
       .notNull()
-      .references(() => notifications.id, { onDelete: 'cascade' }),
-    isRead: boolean('is_read').default(false).notNull(),
-    readAt: timestamp('read_at', { mode: 'date' }),
-    createdAt: timestamp('created_at', { mode: 'date' })
-      .defaultNow()
-      .notNull(),
+      .references(() => notifications.id, { onDelete: "cascade" }),
+    isRead: boolean("is_read").default(false).notNull(),
+    readAt: timestamp("read_at", { mode: "date" }),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   },
   (table) => ({
-    userIdIdx: index('user_notifications_user_id_idx').on(table.userId),
-    isReadIdx: index('user_notifications_is_read_idx').on(table.isRead),
-    createdAtIdx: index('user_notifications_created_at_idx').on(
+    userIdIdx: index("user_notifications_user_id_idx").on(table.userId),
+    isReadIdx: index("user_notifications_is_read_idx").on(table.isRead),
+    createdAtIdx: index("user_notifications_created_at_idx").on(
       table.createdAt,
     ),
   }),
@@ -129,38 +169,54 @@ export const userNotifications = pgTable(
  * Individual transaction history.
  * Indexed by 'userId' to ensure high performance on the main Dashboard view.
  */
-export const expenses = pgTable('expenses', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  concept: text('concept').notNull(),
-  amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
-  date: timestamp('date', { mode: 'date' }).defaultNow().notNull(),
-  expenseDate: date('expense_date', { mode: 'date' }).notNull(),
-  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: "cascade" }),
-  category: text('category').notNull(),  
-  isRecurring: boolean('is_recurring').default(false),
-}, (table) => ({
-  userIdIdx: index("expenses_userId_idx").on(table.userId),
-}));
+export const expenses = pgTable(
+  "expenses",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    concept: text("concept").notNull(),
+    amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+    date: timestamp("date", { mode: "date" }).defaultNow().notNull(),
+    expenseDate: date("expense_date", { mode: "date" }).notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    categoryId: uuid("category_id").references(() => categories.id, { onDelete: "set null" }),
+    isRecurring: boolean("is_recurring").default(false),
+  },
+  (table) => ({
+    userIdIdx: index("expenses_userId_idx").on(table.userId),
+    categoryIdIdx: index("expenses_category_idx").on(table.categoryId),
+  }),
+);
 
 /**
  * TABLE: subscriptions
  * Recurring expense definitions for the automation engine.
  * Indexed by 'userId' to optimize the cron processing and user management.
  */
-export const subscriptions = pgTable('subscriptions', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  name: text('name').notNull(),
-  amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
-  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: "cascade" }),
-  category: text('category').notNull(),
-  frequencyValue: integer('frequency_value').notNull().default(1),
-  timeUnitId: uuid('time_unit_id').notNull().references(() => timeUnits.id),
-  nextRun: timestamp('next_run', { mode: 'date' }).notNull(),
-  active: boolean('active').default(true),
-  startsAt: timestamp('starts_at', { mode: 'date' }).defaultNow().notNull(),
-}, (table) => ({
-  userIdIdx: index("subscriptions_userId_idx").on(table.userId),
-}));
+export const subscriptions = pgTable(
+  "subscriptions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: text("name").notNull(),
+    amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    categoryId: uuid('category_id').references(() => categories.id, { onDelete: "set null" }),
+    frequencyValue: integer("frequency_value").notNull().default(1),
+    timeUnitId: uuid("time_unit_id")
+      .notNull()
+      .references(() => timeUnits.id),
+    nextRun: timestamp("next_run", { mode: "date" }).notNull(),
+    active: boolean("active").default(true),
+    startsAt: timestamp("starts_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => ({
+    userIdIdx: index("subscriptions_userId_idx").on(table.userId),
+    categoryIdIdx: index("subscriptions_categoryId_idx").on(table.categoryId),
+  }),
+);
 
 /* --- RELATIONS DEFINITIONS (Drizzle ORM Typed Relations) --- */
 
@@ -182,6 +238,10 @@ export const expensesRelations = relations(expenses, ({ one }) => ({
     fields: [expenses.userId],
     references: [users.id],
   }),
+  category: one(categories, {
+    fields: [expenses.categoryId],
+    references: [categories.id],
+  }),
 }));
 
 export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
@@ -193,14 +253,15 @@ export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
     fields: [subscriptions.timeUnitId],
     references: [timeUnits.id],
   }),
+  category: one(categories, {
+    fields: [subscriptions.categoryId],
+    references: [categories.id],
+  }),
 }));
 
-export const notificationsRelations = relations(
-  notifications,
-  ({ many }) => ({
-    userNotifications: many(userNotifications),
-  }),
-);
+export const notificationsRelations = relations(notifications, ({ many }) => ({
+  userNotifications: many(userNotifications),
+}));
 
 export const userNotificationsRelations = relations(
   userNotifications,
@@ -215,3 +276,14 @@ export const userNotificationsRelations = relations(
     }),
   }),
 );
+
+export const categoriesRelations = relations(categories, ({ one, many }) => ({
+  user: one(users, { fields: [categories.userId], references: [users.id] }),
+  expenses: many(expenses),
+  subscriptions: many(subscriptions),
+}));
+
+export const userHiddenCategoriesRelations = relations(userHiddenCategories, ({ one }) => ({
+  user: one(users, { fields: [userHiddenCategories.userId], references: [users.id] }),
+  category: one(categories, { fields: [userHiddenCategories.categoryId], references: [categories.id] }),
+}));
