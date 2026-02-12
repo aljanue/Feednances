@@ -1,10 +1,8 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { db } from "@/db";
-import { users } from "@/db/schema";
-import { eq } from "drizzle-orm";
 import DashboardNavbar from "@/components/dashboard/navbar";
 import DashboardTopbar from "@/components/dashboard/topbar";
+import { getUserById } from "@/lib/data/users.queries";
 
 export const metadata = {
   title: "Dashboard | Feednances",
@@ -32,9 +30,7 @@ export default async function DashboardLayout({
 
   if (!session?.user?.id) redirect("/login");
 
-  const user = await db.query.users.findFirst({
-    where: eq(users.id, session.user.id),
-  });
+  const user = await getUserById(session.user.id);
 
   if (user?.firstLogin) {
     redirect("/configuration");

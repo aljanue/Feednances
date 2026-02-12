@@ -67,11 +67,17 @@ export interface AverageCardDTO {
   percentageDiff: number;
 }
 
+export interface CategoryDTO {
+  id: string;
+  name: string;
+  hexColor: string | null;
+}
+
 export interface RecentExpenseDTO {
   id: string;
   concept: string;
   amount: number;
-  category: string;
+  category: CategoryDTO;
   expenseDate: string;
   isRecurring: boolean;
 }
@@ -80,7 +86,7 @@ export interface SubscriptionDTO {
   id: string;
   name: string;
   amount: number;
-  category: string;
+  category: CategoryDTO;
   active: boolean;
   nextDate: string;
   timeValue: number;

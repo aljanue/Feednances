@@ -1,8 +1,6 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { db } from "@/db";
-import { users } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { getUserById } from "@/lib/data/users.queries";
 
 export const metadata = {
   title: "Setup | Feednances",
@@ -22,9 +20,7 @@ export default async function ConfigurationLayout({
 
   if (!session?.user?.id) redirect("/login");
 
-  const user = await db.query.users.findFirst({
-    where: eq(users.id, session.user.id),
-  });
+  const user = await getUserById(session.user.id);
 
   if (user && !user.firstLogin) {
     redirect("/dashboard");

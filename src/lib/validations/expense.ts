@@ -26,7 +26,7 @@ const amountSchema = z
 export const expenseFormSchema = z.object({
   concept: z.string().trim().min(1, "Concept is required."),
   amount: amountSchema,
-  category: z.string().trim().min(1, "Category is required."),
+  category: z.string().uuid("Category is required."),
   expenseDate: z
     .string()
     .min(1, "Date is required.")

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
-import { expenses } from "@/db/schema";
+import { createExpense } from "@/lib/data/expenses.queries";
 import { createNotificationForUser } from "@/lib/services/notifications";
 import { formatAmount } from "@/utils/format-data.utils";
 import { validateRequest } from "@/utils/user.utils";
@@ -8,7 +7,7 @@ import { validateRequest } from "@/utils/user.utils";
 interface CreateExpenseDTO {
   amount: number | string;
   concept: string;
-  categoryName: string;
+  categoryId: string;
   expenseDate: string;
   isRecurring?: boolean;
 }
@@ -21,7 +20,7 @@ export async function POST(req: NextRequest) {
     if (
       !body.amount ||
       !body.concept ||
-      !body.categoryName ||
+      !body.categoryId ||
       !body.expenseDate
     ) {
       return NextResponse.json(
@@ -40,10 +39,10 @@ export async function POST(req: NextRequest) {
 
     const amountFormatted = formatAmount(body.amount);
 
-    await db.insert(expenses).values({
+    await createExpense({
       amount: amountFormatted,
       concept: body.concept,
-      category: body.categoryName,
+      categoryId: body.categoryId,
       userId: user.id,
       date: new Date(),
       expenseDate: body.expenseDate ? new Date(body.expenseDate) : new Date(),

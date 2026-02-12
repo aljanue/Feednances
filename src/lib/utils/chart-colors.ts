@@ -1,4 +1,4 @@
-const chartPalette = [
+export const chartPalette = [
   "var(--chart-1)",
   "var(--chart-2)",
   "var(--chart-3)",

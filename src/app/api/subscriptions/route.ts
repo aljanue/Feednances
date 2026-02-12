@@ -1,10 +1,10 @@
 import { db } from "@/db";
-import { expenses, subscriptions, timeUnits } from "@/db/schema";
+import { timeUnits, users } from "@/db/schema";
 import { formatAmount } from "@/utils/format-data.utils";
 import { validateRequest } from "@/utils/user.utils";
 import type { CreateSubscriptionDTO } from "@/lib/dtos/subscription";
+import { createSubscriptionWithTransaction } from "@/lib/data/subscriptions.queries";
 import { auth } from "@/auth";
-import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       !body.amount ||
       !body.periodType ||
       !body.periodValue ||
-      !body.categoryName
+      !body.categoryId
     ) {
       return NextResponse.json(
         { error: "Missing input in body" },
@@ -76,40 +76,42 @@ export async function POST(req: NextRequest) {
     const shouldChargeNow = startMidnight <= todayMidnight;
 
     let initialNextRun: Date;
+    let expenseData = null;
 
-    await db.transaction(async (tx) => {
-      if (shouldChargeNow) {
-        await tx.insert(expenses).values({
-          userId: user.id,
-          concept: `🔄 ${body.concept}`,
-          amount: amountFormatted,
-          category: body.categoryName,
-          date: new Date(),
-          expenseDate: startsAtDate,
-          isRecurring: true,
-        });
+    if (shouldChargeNow) {
+      expenseData = {
+        userId: user.id,
+        concept: `🔄 ${body.concept}`,
+        amount: amountFormatted,
+        categoryId: body.categoryId,
+        date: new Date(),
+        expenseDate: startsAtDate,
+        isRecurring: true,
+      };
 
-        initialNextRun = calculateNextRun(
-          Number(body.periodValue),
-          body.periodType,
-          startsAtDate,
-        );
-      } else {
-        initialNextRun = startsAtDate;
-      }
+      initialNextRun = calculateNextRun(
+        Number(body.periodValue),
+        body.periodType,
+        startsAtDate,
+      );
+    } else {
+      initialNextRun = startsAtDate;
+    }
 
-      await tx.insert(subscriptions).values({
+    await createSubscriptionWithTransaction(
+      {
         userId: user.id,
         name: body.concept,
         amount: amountFormatted,
         timeUnitId: timeUnit.id,
         frequencyValue: body.periodValue,
-        category: body.categoryName,
+        categoryId: body.categoryId,
         nextRun: initialNextRun,
         active: true,
         startsAt: startsAtDate,
-      });
-    });
+      },
+      expenseData,
+    );
 
     revalidatePath("/dashboard");
 

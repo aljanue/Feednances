@@ -1,4 +1,3 @@
-import { and, desc, eq, gte, lte } from "drizzle-orm";
 import {
   differenceInCalendarMonths,
   eachDayOfInterval,
@@ -7,11 +6,12 @@ import {
   startOfDay,
   startOfMonth,
 } from "date-fns";
-import { db } from "@/db";
-import { expenses, subscriptions } from "@/db/schema";
+import { getExpensesByDateRange } from "@/lib/data/expenses.queries";
+import { getActiveSubscriptions } from "@/lib/data/subscriptions.queries";
 import type {
   AverageCardDTO,
   CategoryBreakdownItem,
+  CategoryDTO,
   DashboardDTO,
   ExpenseTrendPoint,
   FixedVariablePoint,
@@ -93,36 +93,33 @@ function slugify(value: string) {
 
 // --- Builders ---
 
+interface ExpenseWithCategory {
+  amount: string | number;
+  category: { name: string; hexColor: string | null } | null;
+}
+
 function buildCategoryBreakdown(
-  items: { category: string; amount: string | number }[],
+  items: ExpenseWithCategory[],
 ): CategoryBreakdownItem[] {
   const totals = new Map<string, number>();
+  const categoryColors = new Map<string, string>();
 
   for (const item of items) {
-    const key = item.category.trim() || "Uncategorized";
-    totals.set(key, (totals.get(key) ?? 0) + toNumber(item.amount));
+    const categoryName = item.category?.name?.trim() || "Uncategorized";
+    totals.set(categoryName, (totals.get(categoryName) ?? 0) + toNumber(item.amount));
+    
+    if (item.category?.hexColor && !categoryColors.has(categoryName)) {
+      categoryColors.set(categoryName, item.category.hexColor);
+    }
   }
 
   const entries = Array.from(totals.entries()).sort((a, b) => b[1] - a[1]);
-  const usedIds = new Set<string>();
-
-  return entries.map(([category, total], index) => {
-    const baseId = slugify(category) || `category-${index + 1}`;
-    let id = baseId;
-    let suffix = 1;
-
-    while (usedIds.has(id)) {
-      id = `${baseId}-${suffix}`;
-      suffix += 1;
-    }
-
-    usedIds.add(id);
-
+  return entries.map(([category, total]) => {
     return {
-      id,
+      id: category, // Use the name as ID to match nameKey in charts
       category,
       total,
-      color: getChartColorForCategory(category),
+      color: categoryColors.get(category) || getChartColorForCategory(category),
     };
   });
 }
@@ -211,7 +208,7 @@ function buildGraphRangeData(
   items: {
     expenseDate: Date;
     amount: string | number;
-    category: string;
+    category: { name: string; hexColor: string | null } | null;
     isRecurring: boolean | null;
   }[],
   rangeStart: Date,
@@ -273,26 +270,13 @@ export async function getDashboardData(
     end: now,
   };
 
-  const expenseRows = await db.query.expenses.findMany({
-    where: and(
-      eq(expenses.userId, userId),
-      gte(expenses.expenseDate, maxRange.start),
-      lte(expenses.expenseDate, maxRange.end),
-    ),
-    orderBy: [desc(expenses.expenseDate)],
-  });
+  const expenseRows = await getExpensesByDateRange(
+    userId,
+    maxRange.start,
+    maxRange.end
+  );
 
-  const subscriptionRows = await db.query.subscriptions.findMany({
-    where: and(
-      eq(subscriptions.userId, userId),
-      eq(subscriptions.active, true),
-    ),
-    with: {
-      timeUnit: true,
-    },
-    orderBy: [desc(subscriptions.amount)],
-    limit: 5,
-  });
+  const subscriptionRows = await getActiveSubscriptions(userId, 5);
 
   const topSubscriptions = buildTopSubscriptions(subscriptionRows);
 
@@ -432,25 +416,52 @@ export async function getDashboardData(
 
   const recentExpenses: RecentExpenseDTO[] = expenseRows
     .slice(0, 5)
-    .map((expense) => ({
-      id: expense.id,
-      concept: expense.concept,
-      amount: toNumber(expense.amount),
-      category: expense.category,
-      expenseDate: expense.expenseDate.toISOString(),
-      isRecurring: Boolean(expense.isRecurring),
-    }));
+    .map((expense) => {
+      // Map null category to a default structure for DTO
+      const categoryFunc = (cat: typeof expense.category): CategoryDTO => {
+        if (!cat) {
+          return { id: "unknown", name: "Uncategorized", hexColor: null };
+        }
+        return {
+          id: cat.id,
+          name: cat.name,
+          hexColor: cat.hexColor || null,
+        };
+      };
 
-  const subscriptionList: SubscriptionDTO[] = subscriptionRows.map((item) => ({
-    id: item.id,
-    name: item.name,
-    amount: toNumber(item.amount),
-    category: item.category,
-    active: Boolean(item.active),
-    nextDate: item.nextRun.toISOString(),
-    timeValue: item.frequencyValue,
-    timeType: item.timeUnit ? formatTimeAbbreviationByType(item.timeUnit.value) : item.timeUnitId,
-  }));
+      return {
+        id: expense.id,
+        concept: expense.concept,
+        amount: toNumber(expense.amount),
+        category: categoryFunc(expense.category),
+        expenseDate: expense.expenseDate.toISOString(),
+        isRecurring: Boolean(expense.isRecurring),
+      };
+    });
+
+  const subscriptionList: SubscriptionDTO[] = subscriptionRows.map((item) => {
+    const categoryFunc = (cat: typeof item.category): CategoryDTO => {
+      if (!cat) {
+        return { id: "unknown", name: "Uncategorized", hexColor: null };
+      }
+      return {
+        id: cat.id,
+        name: cat.name,
+        hexColor: cat.hexColor || null,
+      };
+    };
+
+    return {
+      id: item.id,
+      name: item.name,
+      amount: toNumber(item.amount),
+      category: categoryFunc(item.category),
+      active: Boolean(item.active),
+      nextDate: item.nextRun.toISOString(),
+      timeValue: item.frequencyValue,
+      timeType: item.timeUnit ? formatTimeAbbreviationByType(item.timeUnit.value) : item.timeUnitId,
+    };
+  });
 
   return {
     numberCard,

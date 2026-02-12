@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useRef, useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { CalendarIcon, Loader2 } from "lucide-react";
@@ -21,9 +21,17 @@ import {
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import { cn } from "@/lib/utils";
 
 import { createExpenseAction } from "@/lib/actions/expenses";
+import { getCategoriesAction } from "@/lib/actions/categories";
 import type {
   NotificationItemDTO,
   NotificationsResponseDTO,
@@ -37,12 +45,19 @@ export default function NewExpenseModal() {
   // Estados locales
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState<Date>();
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string>
   >({});
   const [isPending, startTransition] = useTransition();
 
   const formRef = useRef<HTMLFormElement | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      getCategoriesAction().then(setCategories);
+    }
+  }, [open]);
 
   // Helper para la actualización optimista (DRY)
   const updateNotificationsCache = (newNotification: NotificationItemDTO) => {
@@ -173,13 +188,18 @@ export default function NewExpenseModal() {
             {/* Categoría */}
             <div className="grid gap-2">
               <Label htmlFor="category">Category</Label>
-              <Input
-                id="category"
-                name="category"
-                placeholder="Food, Transport, etc."
-                disabled={isPending}
-                required
-              />
+              <Select name="category" disabled={isPending} required>
+                <SelectTrigger id="category">
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {validationErrors.category && (
                 <p className="text-sm font-medium text-destructive">
                   {validationErrors.category}

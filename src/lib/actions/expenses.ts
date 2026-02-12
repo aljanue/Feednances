@@ -3,12 +3,11 @@
 import { revalidatePath } from "next/cache";
 
 import { auth } from "@/auth";
-import { db } from "@/db";
-import { expenses } from "@/db/schema";
 import type { NotificationItemDTO } from "@/lib/dtos/notifications";
 import { createNotificationForUser } from "@/lib/services/notifications";
 import { formatAmount } from "@/utils/format-data.utils";
 import { validateExpenseForm } from "@/lib/validations/expense";
+import { createExpense } from "@/lib/data/expenses.queries";
 
 export interface CreateExpenseActionState {
   success?: boolean;
@@ -51,10 +50,10 @@ export async function createExpenseAction(
   }
 
   try {
-    await db.insert(expenses).values({
+    await createExpense({
       amount: amountFormatted,
       concept,
-      category,
+      categoryId: category,
       userId: session.user.id,
       date: new Date(),
       expenseDate: new Date(expenseDate),

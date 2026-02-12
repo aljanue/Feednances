@@ -46,7 +46,6 @@ export const categories = pgTable(
   {
     id: uuid("id").defaultRandom().primaryKey(),
     name: text("name").notNull(),
-    icon: text("icon"),
     hexColor: text("hex_color"),
     userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
     active: boolean("active").default(true),
@@ -72,6 +71,7 @@ export const userHiddenCategories = pgTable(
     categoryId: uuid("category_id")
       .notNull()
       .references(() => categories.id, { onDelete: "cascade" }),
+    deleted: boolean("deleted").default(true).notNull(),
   },
   (table) => ({
     pk: primaryKey({ columns: [table.userId, table.categoryId] }),

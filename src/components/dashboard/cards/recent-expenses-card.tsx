@@ -100,7 +100,13 @@ function RecentExpenseRow({ expense }: { expense: RecentExpenseDTO }) {
           variant="outline"
           className="text-xs capitalize bg-background/50"
         >
-          {expense.category}
+          <span
+            className="mr-1.5 inline-block h-2 w-2 rounded-full"
+            style={{
+              backgroundColor: expense.category.hexColor ?? "var(--foreground)",
+            }}
+          />
+          {expense.category.name}
         </Badge>
       </TableCell>
 

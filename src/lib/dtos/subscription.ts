@@ -3,6 +3,6 @@ export interface CreateSubscriptionDTO {
   amount: string;
   periodType: string;
   periodValue: number;
-  categoryName: string;
+  categoryId: string;
   startsAt?: string;
 }
