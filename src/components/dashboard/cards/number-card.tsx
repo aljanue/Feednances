@@ -1,12 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { TrendingDown, TrendingUp, Minus } from "lucide-react";
 
 import EllipsisMenu, { EllipsisMenuItem } from "./ellipsis-menu";
+import PercentageChangeBadge from "@/components/shared/percentage-change-badge";
 import type { NumberCardDTO, NumberCardMetricKey } from "@/lib/dtos/dashboard";
 import { formatCurrency } from "@/lib/utils/formatters";
-import { cn } from "@/lib/utils";
 
 interface NumberCardProps {
   data: NumberCardDTO;
@@ -22,7 +21,7 @@ const metricLabels: Record<NumberCardMetricKey, string> = {
 export default function NumberCard({ data }: NumberCardProps) {
   const metrics = useMemo(() => data.metrics, [data]);
 
-  const [metricKey, setMetricKey] = useState<NumberCardMetricKey>("total");
+  const [metricKey, setMetricKey] = useState<NumberCardMetricKey>("monthly");
   const metric = metrics[metricKey];
 
   const menuItems: EllipsisMenuItem[] = (
@@ -42,6 +41,8 @@ export default function NumberCard({ data }: NumberCardProps) {
           period={metric.period}
           changeMonth={metric.changeMonth}
           changeYear={metric.changeYear}
+          diffMonth={metric.diffMonth}
+          diffYear={metric.diffYear}
         />
       </div>
     </div>
@@ -74,22 +75,19 @@ function NumberCardChange({
   period,
   changeMonth,
   changeYear,
+  diffMonth,
+  diffYear,
 }: {
   value: number;
   period: "month" | "year";
   changeMonth?: number;
   changeYear?: number;
+    diffMonth?: number;
+    diffYear?: number;
 }) {
   const changeValue = period === "month" ? changeMonth : changeYear;
-  const periodLabel = period === "month" ? "last month" : "last year";
-
-  const isIncrease = changeValue !== undefined && changeValue > 0;
-  const isDecrease = changeValue !== undefined && changeValue < 0;
-
-  const percentValue =
-    changeValue !== undefined
-      ? Math.abs(changeValue * 100).toFixed(1)
-      : "0.0";
+  const diffValue = period === "month" ? diffMonth : diffYear;
+  const periodLabel = period === "month" ? "vs last month" : "vs last year";
 
   if (value === 0) {
     return (
@@ -102,33 +100,19 @@ function NumberCardChange({
   if (changeValue === undefined || changeValue === null) {
     return (
       <p className="text-sm text-muted-foreground mt-2">
-        Not enough data to compare with {periodLabel}.
+        Not enough data to compare with {period === "month" ? "last month" : "last year"}.
       </p>
     );
   }
 
   return (
-    <div className="flex items-center gap-2 mt-2">
-      <div
-        className={cn(
-          "flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold",
-          isIncrease
-            ? "bg-rose-500/15 text-rose-600 dark:text-rose-400"
-            : isDecrease
-            ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-            : "bg-secondary text-muted-foreground"
-        )}
-      >
-        {isIncrease ? (
-          <TrendingUp className="h-3 w-3" />
-        ) : isDecrease ? (
-          <TrendingDown className="h-3 w-3" />
-        ) : (
-          <Minus className="h-3 w-3" />
-        )}
-        {percentValue}%
-      </div>
-      <span className="text-sm text-muted-foreground">vs {periodLabel}</span>
+    <div className="mt-2">
+      <PercentageChangeBadge
+        change={changeValue}
+        absoluteDiff={diffValue}
+        label={periodLabel}
+        format="currency"
+      />
     </div>
   );
 }

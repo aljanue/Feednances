@@ -1,7 +1,8 @@
-import { and, desc, eq } from "drizzle-orm";
-
-import { db } from "@/db";
-import { notifications, userNotifications } from "@/db/schema";
+import {
+  getLatestNotifications as getLatestNotificationsQuery,
+  createNotificationWithUser,
+  markAllNotificationsRead as markAllNotificationsReadQuery,
+} from "@/lib/data/notifications.queries";
 import type {
   NotificationItemDTO,
   NotificationType,
@@ -16,14 +17,7 @@ export async function getLatestNotifications(
   userId: string,
   limit = 10,
 ): Promise<NotificationItemDTO[]> {
-  const rows = await db.query.userNotifications.findMany({
-    where: eq(userNotifications.userId, userId),
-    with: {
-      notification: true,
-    },
-    orderBy: [desc(userNotifications.createdAt)],
-    limit,
-  });
+  const rows = await getLatestNotificationsQuery(userId, limit);
 
   return rows.map((row) => ({
     id: row.id,
@@ -38,48 +32,22 @@ export async function createNotificationForUser(
   userId: string,
   input: CreateNotificationInput,
 ): Promise<NotificationItemDTO> {
-  return db.transaction(async (tx) => {
-    const [notificationRow] = await tx
-      .insert(notifications)
-      .values({
-        text: input.text,
-        type: input.type,
-      })
-      .returning();
+  const { notification, userNotification } = await createNotificationWithUser(
+    userId,
+    input.text,
+    input.type,
+  );
 
-    const [userNotificationRow] = await tx
-      .insert(userNotifications)
-      .values({
-        userId,
-        notificationId: notificationRow.id,
-        isRead: false,
-      })
-      .returning();
-
-    return {
-      id: userNotificationRow.id,
-      text: notificationRow.text,
-      type: notificationRow.type,
-      isRead: userNotificationRow.isRead,
-      createdAt: userNotificationRow.createdAt.toISOString(),
-    };
-  });
+  return {
+    id: userNotification.id,
+    text: notification.text,
+    type: notification.type,
+    isRead: userNotification.isRead,
+    createdAt: userNotification.createdAt.toISOString(),
+  };
 }
 
 export async function markAllNotificationsRead(userId: string) {
-  const now = new Date();
-  const result = await db
-    .update(userNotifications)
-    .set({
-      isRead: true,
-      readAt: now,
-    })
-    .where(
-      and(
-        eq(userNotifications.userId, userId),
-        eq(userNotifications.isRead, false),
-      ),
-    );
-
+  const result = await markAllNotificationsReadQuery(userId);
   return result.length;
 }

@@ -36,9 +36,11 @@ export default function MobileNav({ username, fullName, menuItems }: MobileNavPr
             <Logo />
           </SheetTitle>
         </SheetHeader>
-        <div className="flex flex-col justify-between h-full px-2 ">
+        <div className="flex flex-col justify-between h-full px-2">
           <MenuList items={menuItems} />
-          <UserMenuItem username={username} fullName={fullName} />
+          <div className="mt-auto pt-4 border-t border-muted">
+            <UserMenuItem username={username} fullName={fullName} />
+          </div>
         </div>
       </SheetContent>
     </Sheet>

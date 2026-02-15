@@ -137,3 +137,10 @@ export async function getManagementCategories(userId: string) {
     active: cat.userId === null ? true : cat.active,
   }));
 }
+
+export async function getDefaultCategories() {
+  return await db
+    .select()
+    .from(categories)
+    .where(isNull(categories.userId));
+}

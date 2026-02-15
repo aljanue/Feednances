@@ -23,16 +23,6 @@ export function CategoryGrid({ categories }: CategoryGridProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-           {/* Header is handled in page, but we can add controls here if needed */}
-        </div>
-        <Button className="font-bold" onClick={() => setIsAddDialogOpen(true)}>
-          <Plus className="h-4 w-4" />
-          Add Category
-        </Button>
-      </div>
-
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {categories.map((category) => (
           <CategoryCard key={category.id} category={category} />
@@ -40,7 +30,7 @@ export function CategoryGrid({ categories }: CategoryGridProps) {
         
         <Button
           variant="outline"
-          className="flex h-auto min-h-[100px] flex-col items-center justify-center gap-2 border-dashed hover:bg-muted/50"
+          className="flex h-auto min-h-25 flex-col items-center justify-center gap-2 border-dashed hover:bg-muted/50"
           onClick={() => setIsAddDialogOpen(true)}
         >
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">

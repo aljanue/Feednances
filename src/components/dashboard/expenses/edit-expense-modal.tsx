@@ -2,13 +2,12 @@
 
 import { useRef, useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { format } from "date-fns";
-import { CalendarIcon, Loader2 } from "lucide-react";
+import { format, parseISO } from "date-fns";
+import { CalendarIcon, Loader2, Pencil } from "lucide-react";
 import { toast } from "sonner";
-import { useSWRConfig } from "swr";
 
-import { Button } from "../ui/button";
-import { Calendar } from "../ui/calendar";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -17,35 +16,38 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../ui/dialog";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../ui/select";
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
-import { createExpenseAction } from "@/lib/actions/expenses";
+import { updateExpenseAction } from "@/lib/actions/expenses";
 import { getCategoriesAction } from "@/lib/actions/categories";
-import type {
-  NotificationItemDTO,
-  NotificationsResponseDTO,
-} from "@/lib/dtos/notifications";
 import { NotificationToast } from "@/components/shared/notification-toast";
+import type { ExpenseRowDTO } from "@/lib/dtos/expenses.dto";
 
-export default function NewExpenseModal() {
+interface EditExpenseModalProps {
+  expense: ExpenseRowDTO;
+}
+
+export default function EditExpenseModal({ expense }: EditExpenseModalProps) {
   const router = useRouter();
-  const { mutate } = useSWRConfig();
 
-  // Estados locales
   const [open, setOpen] = useState(false);
-  const [date, setDate] = useState<Date>();
-  const [categories, setCategories] = useState<{ id: string; name: string; hexColor: string | null }[]>([]);
+  const [date, setDate] = useState<Date | undefined>(
+    parseISO(expense.expenseDate),
+  );
+  const [categories, setCategories] = useState<{ id: string; name: string; hexColor: string | null }[]>(
+    [],
+  );
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string>
   >({});
@@ -56,29 +58,11 @@ export default function NewExpenseModal() {
   useEffect(() => {
     if (open) {
       getCategoriesAction().then(setCategories);
+      // Reset date to current expense date when opening
+      setDate(parseISO(expense.expenseDate));
+      setValidationErrors({});
     }
-  }, [open]);
-
-  // Helper para la actualización optimista (DRY)
-  const updateNotificationsCache = (newNotification: NotificationItemDTO) => {
-    mutate(
-      "/api/user/me",
-      (
-        current: NotificationsResponseDTO | undefined,
-      ): NotificationsResponseDTO | undefined => {
-        if (!current) return undefined;
-        return {
-          ...current,
-          unreadCount: (current.unreadCount || 0) + 1,
-          latestNotifications: [
-            newNotification,
-            ...current.latestNotifications,
-          ].slice(0, 10),
-        };
-      },
-      { revalidate: false },
-    );
-  };
+  }, [open, expense.expenseDate]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -87,37 +71,23 @@ export default function NewExpenseModal() {
     setValidationErrors({});
 
     startTransition(async () => {
-      const result = await createExpenseAction({}, formData);
+      const result = await updateExpenseAction(expense.id, formData);
       if (result.success) {
         toast.custom(() => (
           <NotificationToast
-            title="Expense created"
-            description="Your expense has been saved."
+            title="Expense updated"
+            description={`"${formData.get("concept")}" has been updated.`}
             type="success"
           />
         ));
-
-        // Actualización Optimista de SWR
-        if (result.notification) {
-          updateNotificationsCache(result.notification);
-        }
-
-        // Limpieza y Cierre
         setOpen(false);
-        setDate(undefined);
-        formRef.current?.reset();
-
-        // Revalidación real en segundo plano
-        mutate("/api/user/me");
-        router.refresh(); // Actualiza las gráficas del dashboard
+        router.refresh();
       } else if (result.fieldErrors) {
-        // ⚠️ ERRORES DE VALIDACIÓN (Zod)
         setValidationErrors(result.fieldErrors);
       } else {
-        // ❌ ERROR GENÉRICO (Base de datos, etc.)
         toast.custom(() => (
           <NotificationToast
-            title="Error creating expense"
+            title="Error updating expense"
             description={result.error || "Something went wrong."}
             type="error"
           />
@@ -129,18 +99,24 @@ export default function NewExpenseModal() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="font-bold">New Expense</Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="size-8 p-0 text-muted-foreground hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          <Pencil className="size-4" />
+          <span className="sr-only">Edit</span>
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-106.25">
         <DialogHeader>
-          <DialogTitle>New Expense</DialogTitle>
+          <DialogTitle>Edit Expense</DialogTitle>
           <DialogDescription>
-            Add a new expense to your records. Fill in the details below.
+            Update the details of this expense.
           </DialogDescription>
         </DialogHeader>
 
         <form ref={formRef} onSubmit={handleSubmit}>
-          {/* Input oculto para la fecha */}
           <input
             type="hidden"
             name="expenseDate"
@@ -148,13 +124,14 @@ export default function NewExpenseModal() {
           />
 
           <div className="grid gap-4 py-4">
-            {/* Concepto */}
+            {/* Concept */}
             <div className="grid gap-2">
-              <Label htmlFor="concept">Concept</Label>
+              <Label htmlFor="edit-concept">Concept</Label>
               <Input
-                id="concept"
+                id="edit-concept"
                 name="concept"
                 placeholder="Groceries, rent, etc."
+                defaultValue={expense.concept}
                 disabled={isPending}
                 required
               />
@@ -165,16 +142,17 @@ export default function NewExpenseModal() {
               )}
             </div>
 
-            {/* Cantidad */}
+            {/* Amount */}
             <div className="grid gap-2">
-              <Label htmlFor="amount">Amount</Label>
+              <Label htmlFor="edit-amount">Amount</Label>
               <Input
-                id="amount"
+                id="edit-amount"
                 name="amount"
                 type="number"
                 step="0.01"
                 min="0"
                 placeholder="0.00"
+                defaultValue={expense.amount}
                 disabled={isPending}
                 required
               />
@@ -185,11 +163,16 @@ export default function NewExpenseModal() {
               )}
             </div>
 
-            {/* Categoría */}
+            {/* Category */}
             <div className="grid gap-2">
-              <Label htmlFor="category">Category</Label>
-              <Select name="category" disabled={isPending} required>
-                <SelectTrigger id="category">
+              <Label htmlFor="edit-category">Category</Label>
+              <Select
+                name="category"
+                defaultValue={expense.category.id}
+                disabled={isPending}
+                required
+              >
+                <SelectTrigger id="edit-category">
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -215,9 +198,9 @@ export default function NewExpenseModal() {
               )}
             </div>
 
-            {/* Selector de Fecha */}
+            {/* Date Picker */}
             <div className="grid gap-2">
-              <Label htmlFor="expenseDate">Date</Label>
+              <Label htmlFor="edit-expenseDate">Date</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -239,8 +222,8 @@ export default function NewExpenseModal() {
                     mode="single"
                     selected={date}
                     onSelect={setDate}
-                    disabled={(date) =>
-                      date > new Date() || date < new Date("1900-01-01")
+                    disabled={(d) =>
+                      d > new Date() || d < new Date("1900-01-01")
                     }
                     initialFocus
                   />
@@ -265,7 +248,7 @@ export default function NewExpenseModal() {
             </Button>
             <Button type="submit" disabled={isPending || !date}>
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isPending ? "Creating..." : "Create Expense"}
+              {isPending ? "Saving..." : "Save Changes"}
             </Button>
           </DialogFooter>
         </form>

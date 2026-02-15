@@ -1,6 +1,5 @@
-import { NextResponse } from 'next/server';
-import { db } from '@/db';
-import { sql } from 'drizzle-orm';
+import {  NextResponse } from 'next/server';
+import { checkDatabaseHealth } from '@/lib/data/system.queries';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,7 +7,7 @@ export async function GET() {
   const start = performance.now();
 
   try {
-    await db.execute(sql`SELECT 1`);
+    await checkDatabaseHealth();
 
     const duration = Math.round(performance.now() - start);
 

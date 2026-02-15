@@ -84,12 +84,6 @@ function formatDayLabel(date: Date, timeZone: string) {
   }).format(date);
 }
 
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
 
 // --- Builders ---
 
@@ -349,6 +343,9 @@ export async function getDashboardData(
             sumExpenses(yearExpenses),
             sumExpenses(prevYearExpenses),
           ) ?? undefined,
+        diffYear: sumExpenses(prevYearExpenses)
+          ? sumExpenses(yearExpenses) - sumExpenses(prevYearExpenses)
+          : undefined,
       },
       monthly: {
         title: "Expenses This Month",
@@ -359,6 +356,9 @@ export async function getDashboardData(
             sumExpenses(monthExpenses),
             sumExpenses(prevMonthExpenses),
           ) ?? undefined,
+        diffMonth: sumExpenses(prevMonthExpenses)
+          ? sumExpenses(monthExpenses) - sumExpenses(prevMonthExpenses)
+          : undefined,
       },
       subsTotal: {
         title: "Subscription Expenses This Year",
@@ -369,6 +369,9 @@ export async function getDashboardData(
             sumExpenses(yearSubscriptions),
             sumExpenses(prevYearSubscriptions),
           ) ?? undefined,
+        diffYear: sumExpenses(prevYearSubscriptions)
+          ? sumExpenses(yearSubscriptions) - sumExpenses(prevYearSubscriptions)
+          : undefined,
       },
       subsMonthly: {
         title: "Subscription Expenses This Month",
@@ -379,6 +382,9 @@ export async function getDashboardData(
             sumExpenses(monthSubscriptions),
             sumExpenses(prevMonthSubscriptions),
           ) ?? undefined,
+        diffMonth: sumExpenses(prevMonthSubscriptions)
+          ? sumExpenses(monthSubscriptions) - sumExpenses(prevMonthSubscriptions)
+          : undefined,
       },
     },
   };

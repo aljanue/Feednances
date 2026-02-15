@@ -25,9 +25,10 @@ const menuIcons: Record<
 
 interface MenuListProps {
   items: { name: string; href: string }[];
+  collapsed?: boolean;
 }
 
-export default function MenuList({ items }: MenuListProps) {
+export default function MenuList({ items, collapsed }: MenuListProps) {
   const pathname = usePathname();
 
   return (
@@ -37,6 +38,7 @@ export default function MenuList({ items }: MenuListProps) {
           <MenuItem 
             item={{ ...item, icon: menuIcons[item.name] ?? LayoutGrid }}
             isActive={pathname === item.href} 
+            collapsed={collapsed}
           />
         </li>
       ))}

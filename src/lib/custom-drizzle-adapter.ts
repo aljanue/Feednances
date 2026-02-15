@@ -1,39 +1,37 @@
 import { Adapter } from "next-auth/adapters";
-import { db } from "@/db";
-import { accounts, users } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import {
+  createAdapterUser,
+  getAdapterUser,
+  getAdapterUserByEmail,
+  getUserByAccountProvider,
+  updateAdapterUser,
+  deleteAdapterUser,
+  linkAdapterAccount,
+  unlinkAdapterAccount,
+} from "@/lib/data/auth-adapter.queries";
 
 export function CustomDrizzleAdapter(): Adapter {
   return {
     async createUser(data) {
-      try {
-        const [newUser] = await db
-          .insert(users)
-          .values({
-            id: data.id || undefined,
-            email: data.email,
-            fullName: data.name,
-            username: data.email.split("@")[0],
-            emailVerified: data.emailVerified,
-            image: data.image,
-          })
-          .returning();
-        return {
-          id: newUser.id,
-          email: newUser.email,
-          emailVerified: newUser.emailVerified,
-          image: newUser.image,
-          name: newUser.fullName,
-        };
-      } catch (error) {
-        throw error;
-      }
+      const [newUser] = await createAdapterUser({
+        id: data.id || undefined,
+        email: data.email,
+        fullName: data.name ?? null,
+        username: data.email.split("@")[0],
+        emailVerified: data.emailVerified ?? null,
+        image: data.image ?? null,
+      });
+      return {
+        id: newUser.id,
+        email: newUser.email,
+        emailVerified: newUser.emailVerified,
+        image: newUser.image,
+        name: newUser.fullName,
+      };
     },
 
     async getUser(id) {
-      const user = await db.query.users.findFirst({
-        where: eq(users.id, id),
-      });
+      const user = await getAdapterUser(id);
       if (!user) return null;
       return {
         id: user.id,
@@ -45,14 +43,8 @@ export function CustomDrizzleAdapter(): Adapter {
     },
 
     async getUserByEmail(email) {
-      const user = await db.query.users.findFirst({
-        where: eq(users.email, email),
-      });
-      if (!user) {
-        return null;
-      }
-      
-
+      const user = await getAdapterUserByEmail(email);
+      if (!user) return null;
       return {
         id: user.id,
         email: user.email,
@@ -63,20 +55,7 @@ export function CustomDrizzleAdapter(): Adapter {
     },
 
     async getUserByAccount({ provider, providerAccountId }) {
-      const account = await db.query.accounts.findFirst({
-        where: and(
-          eq(accounts.provider, provider),
-          eq(accounts.providerAccountId, providerAccountId),
-        ),
-      });
-      if (!account) {
-        return null;
-      }
-
-      const user = await db.query.users.findFirst({
-        where: eq(users.id, account.userId),
-      });
-      
+      const user = await getUserByAccountProvider(provider, providerAccountId);
       if (!user) return null;
       return {
         id: user.id,
@@ -96,16 +75,12 @@ export function CustomDrizzleAdapter(): Adapter {
           image: null,
           name: null,
         };
-      const [updatedUser] = await db
-        .update(users)
-        .set({
-          email: data.email,
-          fullName: data.name,
-          emailVerified: data.emailVerified,
-          image: data.image,
-        })
-        .where(eq(users.id, data.id))
-        .returning();
+      const [updatedUser] = await updateAdapterUser(data.id, {
+        email: data.email ?? undefined,
+        fullName: data.name ?? null,
+        emailVerified: data.emailVerified ?? null,
+        image: data.image ?? null,
+      });
       return {
         id: updatedUser.id,
         email: updatedUser.email,
@@ -116,11 +91,11 @@ export function CustomDrizzleAdapter(): Adapter {
     },
 
     async deleteUser(id) {
-      await db.delete(users).where(eq(users.id, id));
+      await deleteAdapterUser(id);
     },
 
     async linkAccount(account) {
-      await db.insert(accounts).values({
+      await linkAdapterAccount({
         userId: account.userId as string,
         type: account.type,
         provider: account.provider,
@@ -136,14 +111,7 @@ export function CustomDrizzleAdapter(): Adapter {
     },
 
     async unlinkAccount({ provider, providerAccountId }) {
-      await db
-        .delete(accounts)
-        .where(
-          and(
-            eq(accounts.provider, provider),
-            eq(accounts.providerAccountId, providerAccountId),
-          ),
-        );
+      await unlinkAdapterAccount(provider, providerAccountId);
     },
   };
 }

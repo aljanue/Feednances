@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
-
 import { auth } from "@/auth";
-import { db } from "@/db";
-import { users } from "@/db/schema";
+import { getUserById } from "@/lib/data/users.queries";
 import {
   getLatestNotifications,
   markAllNotificationsRead,
@@ -14,12 +11,10 @@ async function resolveUser(req: NextRequest) {
   const session = await auth();
 
   if (session?.user?.id) {
-    return db.query.users.findFirst({
-      where: eq(users.id, session.user.id),
-    });
+    return await getUserById(session.user.id);
   }
 
-  return validateRequest(req);
+  return await validateRequest(req);
 }
 
 export async function GET(req: NextRequest) {

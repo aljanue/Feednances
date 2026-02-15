@@ -1,8 +1,7 @@
 import * as dotenv from "dotenv";
 import path from "path";
-import { db } from "@/db";
-import { users } from "@/db/schema";
-import { generateUserKey, hashUserKey } from "@/lib/crypto"; // Importamos lo nuevo
+import { createUser } from "@/lib/data/users.queries";
+import { generateUserKey, hashUserKey } from "@/lib/crypto";
 import * as readline from "readline";
 import bcrypt from "bcryptjs";
 
@@ -49,7 +48,7 @@ async function addUser() {
     const userKey = generateUserKey(username);
     const hashedUserKey = hashUserKey(userKey);
 
-    await db.insert(users).values({
+    await createUser({
       username,
       email: email,
       password: encryptedPassword,

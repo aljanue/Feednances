@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
-import { subscriptions, expenses, timeUnits, users } from "@/db/schema";
-import { eq, lte, and, between } from "drizzle-orm";
+import {
+  getSubscriptionsDue,
+  processSubscriptionCharge,
+  getUpcomingSubscriptions,
+} from "@/lib/data/subscriptions.queries";
 import { calculateNextRun } from "@/utils/subscriptions.utils";
 import { addDays, startOfDay, endOfDay } from "date-fns";
 import {
@@ -21,53 +23,29 @@ export async function GET(req: NextRequest) {
     const now = new Date();
     const results: string[] = [];
 
-    const subsDue = await db
-      .select({
-        id: subscriptions.id,
-        userId: subscriptions.userId,
-        name: subscriptions.name,
-        amount: subscriptions.amount,
-        categoryId: subscriptions.categoryId,
-        frequencyValue: subscriptions.frequencyValue,
-        timeUnitValue: timeUnits.value,
-        nextRun: subscriptions.nextRun,
-        telegramChatId: users.telegramChatId,
-      })
-      .from(subscriptions)
-      .leftJoin(timeUnits, eq(subscriptions.timeUnitId, timeUnits.id))
-      .leftJoin(users, eq(subscriptions.userId, users.id))
-      .where(
-        and(eq(subscriptions.active, true), lte(subscriptions.nextRun, now)),
-      );
+    const subsDue = await getSubscriptionsDue(now);
 
     for (const sub of subsDue) {
-      if (!sub.timeUnitValue) continue;
+      if (!sub.timeUnitValue || !sub.categoryId) continue;
 
       try {
-        let newNextRun: Date | null = null;
+        const newNextRun = calculateNextRun(
+          sub.frequencyValue,
+          sub.timeUnitValue as string,
+          sub.nextRun,
+        );
 
-        await db.transaction(async (tx) => {
-          await tx.insert(expenses).values({
+        await processSubscriptionCharge(
+          {
             userId: sub.userId,
-            concept: `${sub.name}`,
+            name: sub.name,
             amount: sub.amount,
             categoryId: sub.categoryId,
-            date: new Date(),
-            expenseDate: sub.nextRun,
-            isRecurring: true,
-          });
-
-          newNextRun = calculateNextRun(
-            sub.frequencyValue,
-            sub.timeUnitValue!,
-            sub.nextRun,
-          );
-
-          await tx
-            .update(subscriptions)
-            .set({ nextRun: newNextRun })
-            .where(eq(subscriptions.id, sub.id));
-        });
+            nextRun: sub.nextRun,
+            id: sub.id,
+          },
+          newNextRun
+        );
 
         if (sub.telegramChatId && newNextRun) {
           await sendSubscriptionChargedNotification(
@@ -88,21 +66,7 @@ export async function GET(req: NextRequest) {
     const startOfTarget = startOfDay(targetDate);
     const endOfTarget = endOfDay(targetDate);
 
-    const subsUpcoming = await db
-      .select({
-        name: subscriptions.name,
-        amount: subscriptions.amount,
-        nextRun: subscriptions.nextRun,
-        telegramChatId: users.telegramChatId,
-      })
-      .from(subscriptions)
-      .leftJoin(users, eq(subscriptions.userId, users.id))
-      .where(
-        and(
-          eq(subscriptions.active, true),
-          between(subscriptions.nextRun, startOfTarget, endOfTarget),
-        ),
-      );
+    const subsUpcoming = await getUpcomingSubscriptions(startOfTarget, endOfTarget);
 
     for (const sub of subsUpcoming) {
       if (sub.telegramChatId) {

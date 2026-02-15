@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import DashboardNavbar from "@/components/dashboard/navbar";
 import DashboardTopbar from "@/components/dashboard/topbar";
 import { getUserById } from "@/lib/data/users.queries";
+import { SidebarProvider } from "@/components/dashboard/sidebar-provider";
 
 export const metadata = {
   title: "Dashboard | Feednances",
@@ -37,26 +38,28 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-background">
-      {" "}
-      <DashboardNavbar
-        username={user?.username ?? ""}
-        fullName={user?.fullName ?? ""}
-        menuItems={menuItems}
-      />
-      <main className="flex-1 flex flex-col min-w-0 h-full">
+    <SidebarProvider>
+      <div className="flex h-screen w-full overflow-hidden bg-background">
         {" "}
-        <DashboardTopbar
-          menuItems={menuItems}
+        <DashboardNavbar
           username={user?.username ?? ""}
           fullName={user?.fullName ?? ""}
+          menuItems={menuItems}
         />
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-background">
-          <div className="max-w-7xl mx-auto">
-            {children}
+        <main className="flex-1 flex flex-col min-w-0 h-full">
+          {" "}
+          <DashboardTopbar
+            menuItems={menuItems}
+            username={user?.username ?? ""}
+            fullName={user?.fullName ?? ""}
+          />
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-background">
+            <div className="max-w-7xl mx-auto">
+              {children}
+            </div>
           </div>
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
+    </SidebarProvider>
   );
 }

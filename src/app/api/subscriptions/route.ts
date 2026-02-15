@@ -1,11 +1,12 @@
-import { db } from "@/db";
-import { timeUnits, users } from "@/db/schema";
 import { formatAmount } from "@/utils/format-data.utils";
 import { validateRequest } from "@/utils/user.utils";
 import type { CreateSubscriptionDTO } from "@/lib/dtos/subscription";
-import { createSubscriptionWithTransaction } from "@/lib/data/subscriptions.queries";
+import {
+  createSubscriptionWithTransaction,
+  getTimeUnitByValue,
+} from "@/lib/data/subscriptions.queries";
+import { getUserById } from "@/lib/data/users.queries";
 import { auth } from "@/auth";
-import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { calculateNextRun } from "@/utils/subscriptions.utils";
@@ -33,13 +34,10 @@ export async function POST(req: NextRequest) {
     }
 
     const session = await auth();
-    const sessionUser = session?.user?.id
-      ? await db.query.users.findFirst({
-          where: eq(users.id, session.user.id),
-        })
-      : null;
+    const user = session?.user?.id
+      ? await getUserById(session.user.id)
+      : await validateRequest(req);
 
-    const user = sessionUser ?? (await validateRequest(req));
     if (!user) {
       return NextResponse.json(
         { error: "User not found" },
@@ -51,9 +49,7 @@ export async function POST(req: NextRequest) {
 
     userId = user.id;
 
-    const timeUnit = await db.query.timeUnits.findFirst({
-      where: eq(timeUnits.value, body.periodType.toLowerCase()),
-    });
+    const timeUnit = await getTimeUnitByValue(body.periodType);
 
     if (!timeUnit) {
       return NextResponse.json(

@@ -54,6 +54,8 @@ export interface NumberCardMetric {
   period: "month" | "year";
   changeMonth?: number;
   changeYear?: number;
+  diffMonth?: number;
+  diffYear?: number;
 }
 
 export interface NumberCardDTO {

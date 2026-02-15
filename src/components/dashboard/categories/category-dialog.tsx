@@ -4,7 +4,6 @@ import { useActionState, useEffect, useState, useTransition } from "react";
 import { useFormStatus } from "react-dom";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,7 +22,6 @@ import {
   updateCategoryAction,
   CategoryActionState,
 } from "@/lib/actions/categories";
-import { createCategorySchema } from "@/lib/validations/category";
 
 interface CategoryDialogProps {
   open: boolean;
@@ -74,7 +72,6 @@ export function CategoryDialog({
 
   const handleSubmit = (formData: FormData) => {
     startTransition(() => {
-      // Append color manually since it's not a standard input
       if (hexColor) {
         formData.append("hexColor", hexColor);
       }
@@ -84,7 +81,7 @@ export function CategoryDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-106.25">
         <DialogHeader>
           <DialogTitle>
             {category ? "Edit Category" : "New Category"}

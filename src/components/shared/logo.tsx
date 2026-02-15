@@ -1,6 +1,10 @@
 import Image from "next/image";
 
-export default function Logo() {
+interface LogoProps {
+  collapsed?: boolean;
+}
+
+export default function Logo({ collapsed }: LogoProps) {
     return (
         <div className="flex items-center gap-4 h-6 cursor-pointer">
           <Image
@@ -10,7 +14,7 @@ export default function Logo() {
             height={32}
             className="h-full w-auto"
           />
-          <h1 className="font-bold text-xl">Feednances</h1>
+        {!collapsed && <h1 className="font-bold text-xl transition-opacity duration-300">Feednances</h1>}
         </div>
     )
 }

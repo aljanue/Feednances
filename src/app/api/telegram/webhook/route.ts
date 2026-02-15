@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
-import { users } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { getUserById, updateUserTelegramChatId } from "@/lib/data/users.queries";
 import { sendMessage } from "@/lib/telegram";
 
 export async function POST(req: NextRequest) {
@@ -21,9 +19,7 @@ export async function POST(req: NextRequest) {
       if (parts.length === 2) {
         const userId = parts[1];
 
-        const user = await db.query.users.findFirst({
-          where: eq(users.id, userId),
-        });
+        const user = await getUserById(userId);
 
         if (user) {
           await sendMessage(
@@ -31,10 +27,7 @@ export async function POST(req: NextRequest) {
             `🤖 <b>Welcome to Feednances Bot!</b>\n\nI'm your personal assistant for subscription control. My mission is to ensure you never miss a payment:\n\n🔔 I'll notify you 2 days before each renewal.\n✅ I'll confirm once a payment is recorded in our system.`,
           );
 
-          await db
-            .update(users)
-            .set({ telegramChatId: telegramId })
-            .where(eq(users.id, userId));
+          await updateUserTelegramChatId(userId, telegramId);
 
           await sendMessage(
             telegramId,

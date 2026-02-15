@@ -2,11 +2,13 @@
 
 import { signIn, auth } from "@/auth";
 import { AuthError } from "next-auth";
-import { db } from "@/db";
-import { users } from "@/db/schema";
+import {
+  createUser,
+  updateUserPassword,
+  updateUserFirstLogin,
+} from "@/lib/data/users.queries";
 import { hash } from "bcryptjs";
 import { redirect } from "next/navigation";
-import { eq } from "drizzle-orm";
 
 export async function authenticate(
   prevState: string | undefined,
@@ -64,7 +66,7 @@ export async function registerUser(prevState: unknown, formData: FormData) {
   try {
     const hashedPassword = await hash(password, 10);
 
-    await db.insert(users).values({
+    await createUser({
       username,
       fullName,
       email,
@@ -120,10 +122,7 @@ export async function setUserPassword(prevState: unknown, formData: FormData) {
   try {
     const hashedPassword = await hash(password, 10);
 
-    await db
-      .update(users)
-      .set({ password: hashedPassword })
-      .where(eq(users.id, session.user.id));
+    await updateUserPassword(session.user.id, hashedPassword);
 
     return { success: true };
   } catch (error) {
@@ -140,10 +139,7 @@ export async function completeConfiguration() {
   }
 
   try {
-    await db
-      .update(users)
-      .set({ firstLogin: false })
-      .where(eq(users.id, session.user.id));
+    await updateUserFirstLogin(session.user.id, false);
 
     return { success: true };
   } catch (error) {

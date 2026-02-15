@@ -2,7 +2,10 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { getManagementCategories } from "@/lib/data/categories.queries";
 import { CategoryGrid } from "@/components/dashboard/categories/category-grid";
+import { NewCategoryButton } from "@/components/dashboard/categories/new-category-button";
 import { Metadata } from "next";
+import TitleHeader from "@/components/dashboard/title-header";
+import MainSection from "@/components/dashboard/main-section";
 
 export const metadata: Metadata = {
   title: "Categories | Fiscal Flow",
@@ -19,15 +22,13 @@ export default async function CategoriesPage() {
   const categories = await getManagementCategories(session.user.id);
 
   return (
-    <section className="h-full w-full flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold tracking-tight">Categories</h1>
-        <p className="text-muted-foreground">
-          Manage your expense categories. Default categories cannot be modified.
-        </p>
+    <MainSection>
+      <div className="flex items-center justify-between gap-4">
+        <TitleHeader title="Categories" description="Manage your expense categories. Default categories cannot be modified." />
+        <NewCategoryButton />
       </div>
 
       <CategoryGrid categories={categories} />
-    </section>
+    </MainSection>
   );
 }

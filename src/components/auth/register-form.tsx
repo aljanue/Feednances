@@ -1,4 +1,3 @@
-// components/auth/register-form.tsx
 "use client";
 
 import { useActionState, useState, useMemo } from "react";

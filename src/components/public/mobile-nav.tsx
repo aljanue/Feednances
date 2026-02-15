@@ -3,7 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 
-export default function MobileNav() {
+interface MobileNavProps {
+  user?: {
+    username: string;
+    fullName: string | null;
+  } | null;
+}
+
+export default function MobileNav({ user }: MobileNavProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -113,22 +120,53 @@ export default function MobileNav() {
           {/* Divider */}
           <div className="h-px bg-muted-foreground/20 my-6" />
 
-          {/* Auth Buttons */}
-          <div className="flex flex-col gap-3">
-            <Link
-              href="/login"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center justify-center h-11 px-4 rounded-lg border border-muted-foreground/30 text-foreground font-bold hover:bg-muted/50 transition-colors"
-            >
-              Login
-            </Link>
-            <Link
-              href="/register"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center justify-center h-11 px-4 rounded-lg bg-primary text-primary-foreground font-bold glow-primary hover:bg-primary/90 transition-colors"
-            >
-              Get Started
-            </Link>
+          {/* Auth Buttons or User Info */}
+          <div className="flex flex-col gap-6">
+            {user ? (
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/5 border border-primary/10">
+                  <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 border border-primary/20 text-primary font-bold text-sm">
+                    {user.fullName
+                      ? user.fullName
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .toUpperCase()
+                        .slice(0, 2)
+                      : user.username.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold text-foreground">{user.username}</span>
+                    <span className="text-xs text-muted-foreground truncate max-w-[150px]">{user.fullName}</span>
+                  </div>
+                </div>
+
+                <Link
+                  href="/dashboard"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center justify-center h-12 px-4 rounded-lg bg-primary text-primary-foreground font-bold glow-primary hover:bg-primary/90 transition-colors"
+                >
+                  Go to Dashboard
+                </Link>
+              </div>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center justify-center h-11 px-4 rounded-lg border border-muted-foreground/30 text-foreground font-bold hover:bg-muted/50 transition-colors"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/register"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center justify-center h-11 px-4 rounded-lg bg-primary text-primary-foreground font-bold glow-primary hover:bg-primary/90 transition-colors"
+                >
+                  Get Started
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Footer */}
