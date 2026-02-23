@@ -9,6 +9,7 @@ interface DashboardTopbarProps {
   title?: string;
   username: string;
   fullName: string;
+  image: string | null;
 }
 
 export default function DashboardTopbar({
@@ -16,6 +17,7 @@ export default function DashboardTopbar({
   title = "Dashboard",
   username,
   fullName,
+  image,
 }: DashboardTopbarProps) {
   const pathname = usePathname();
 
@@ -28,7 +30,7 @@ export default function DashboardTopbar({
   return (
     <div className="w-full border-b border-muted flex items-center justify-between px-4 sm:px-6 py-4 bg-background">
       <div className="flex items-center gap-3">
-        <MobileNav username={username} fullName={fullName} menuItems={menuItems} />
+        <MobileNav username={username} fullName={fullName} image={image} menuItems={menuItems} />
         <h1 className="text-lg sm:text-xl font-semibold">{matchedTitle}</h1>
       </div>
       <div className="flex items-center gap-2 sm:gap-4">

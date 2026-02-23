@@ -7,8 +7,11 @@ interface MobileNavProps {
   user?: {
     username: string;
     fullName: string | null;
+    image: string | null;
   } | null;
 }
+
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 export default function MobileNav({ user }: MobileNavProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -125,16 +128,19 @@ export default function MobileNav({ user }: MobileNavProps) {
             {user ? (
               <div className="flex flex-col gap-4">
                 <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/5 border border-primary/10">
-                  <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 border border-primary/20 text-primary font-bold text-sm">
-                    {user.fullName
-                      ? user.fullName
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")
-                        .toUpperCase()
-                        .slice(0, 2)
-                      : user.username.slice(0, 2).toUpperCase()}
-                  </div>
+                  <Avatar className="size-10 border border-primary/20">
+                    <AvatarImage src={user.image ?? undefined} alt={user.username} />
+                    <AvatarFallback className="bg-primary/10 text-primary font-bold text-sm">
+                      {user.fullName
+                        ? user.fullName
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .toUpperCase()
+                          .slice(0, 2)
+                        : user.username.slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
                   <div className="flex flex-col">
                     <span className="text-sm font-semibold text-foreground">{user.username}</span>
                     <span className="text-xs text-muted-foreground truncate max-w-[150px]">{user.fullName}</span>

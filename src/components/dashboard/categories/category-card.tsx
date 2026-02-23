@@ -192,11 +192,11 @@ export function CategoryCard({ category }: CategoryCardProps) {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
+              variant="destructive"
               onClick={(e) => {
                 e.preventDefault();
                 handleDelete();
               }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={isPending}
             >
               {isPending ? "Deleting..." : "Delete"}

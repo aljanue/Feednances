@@ -174,7 +174,6 @@ function DeleteExpenseDialog({
           <AlertDialogAction
             variant="destructive"
             onClick={onConfirm}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
             Delete
           </AlertDialogAction>

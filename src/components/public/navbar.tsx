@@ -40,6 +40,7 @@ export default async function NavBar() {
             <UserMenuItem
               username={user.username}
               fullName={user.fullName ?? ""}
+              image={user.image ?? null}
               variant="compact"
             />
           </div>
@@ -59,7 +60,7 @@ export default async function NavBar() {
       </div>
 
       {/* Mobile Navigation */}
-      <MobileNav user={user ? { username: user.username, fullName: user.fullName } : null} />
+      <MobileNav user={user ? { username: user.username, fullName: user.fullName, image: user.image } : null} />
     </nav>
   );
 }

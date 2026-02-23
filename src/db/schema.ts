@@ -227,6 +227,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   expenses: many(expenses),
   subscriptions: many(subscriptions),
   userNotifications: many(userNotifications),
+  accounts: many(accounts),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({

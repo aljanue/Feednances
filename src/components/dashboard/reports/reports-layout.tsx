@@ -271,7 +271,7 @@ export default function ReportsLayout({ data }: ReportsLayoutProps) {
             <div>
               <h1 className="text-2xl font-bold tracking-tight">Reports</h1>
               <p className="text-sm text-muted-foreground">
-                Analytics overview of your expenses and subscriptions
+                Analytics overview of your expenses and subscriptions.
               </p>
             </div>
           </div>

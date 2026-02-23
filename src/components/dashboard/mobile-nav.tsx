@@ -17,10 +17,11 @@ import MenuList from "./menu-list";
 interface MobileNavProps {
   username: string;
   fullName: string;
+  image: string | null;
   menuItems: { name: string; href: string }[];
 }
 
-export default function MobileNav({ username, fullName, menuItems }: MobileNavProps) {
+export default function MobileNav({ username, fullName, image, menuItems }: MobileNavProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -39,7 +40,7 @@ export default function MobileNav({ username, fullName, menuItems }: MobileNavPr
         <div className="flex flex-col justify-between h-full px-2">
           <MenuList items={menuItems} />
           <div className="mt-auto pt-4 border-t border-muted">
-            <UserMenuItem username={username} fullName={fullName} />
+            <UserMenuItem username={username} fullName={fullName} image={image} />
           </div>
         </div>
       </SheetContent>

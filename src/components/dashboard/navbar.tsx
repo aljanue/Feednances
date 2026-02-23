@@ -12,12 +12,14 @@ import { useSidebar } from "./sidebar-provider";
 interface DashboardNavbarProps {
   username: string;
   fullName: string;
+  image: string | null;
   menuItems: { name: string; href: string }[];
 }
 
 export default function DashboardNavbar({
   username,
   fullName,
+  image,
   menuItems,
 }: DashboardNavbarProps) {
   const { isCollapsed, toggleSidebar, isMobile } = useSidebar();
@@ -42,6 +44,7 @@ export default function DashboardNavbar({
         <UserMenuItem
           username={username}
           fullName={fullName}
+          image={image}
           collapsed={isCollapsed}
           className={cn(isCollapsed && "justify-center px-0")}
         />

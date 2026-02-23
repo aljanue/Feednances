@@ -44,6 +44,7 @@ export default async function DashboardLayout({
         <DashboardNavbar
           username={user?.username ?? ""}
           fullName={user?.fullName ?? ""}
+          image={user?.image ?? null}
           menuItems={menuItems}
         />
         <main className="flex-1 flex flex-col min-w-0 h-full">
@@ -52,6 +53,7 @@ export default async function DashboardLayout({
             menuItems={menuItems}
             username={user?.username ?? ""}
             fullName={user?.fullName ?? ""}
+            image={user?.image ?? null}
           />
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-background">
             <div className="max-w-7xl mx-auto">

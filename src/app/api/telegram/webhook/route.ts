@@ -13,11 +13,13 @@ export async function POST(req: NextRequest) {
     const { text, chat } = update.message;
     const telegramId = chat.id.toString();
 
-    if (text.startsWith("/start")) {
-      const parts = text.split(" ");
+    const textTrimmed = text.trim();
+
+    if (textTrimmed.startsWith("/start")) {
+      const parts = textTrimmed.split(/\s+/);
 
       if (parts.length === 2) {
-        const userId = parts[1];
+        const userId = parts[1].trim();
 
         const user = await getUserById(userId);
 
@@ -41,7 +43,7 @@ export async function POST(req: NextRequest) {
         } else {
           await sendMessage(
             telegramId,
-            "❌ Didn't find any account associated with this link.",
+            `❌ Didn't find any account associated with this link.\n\n(ID tried: <code>${userId}</code>)`,
           );
         }
       } else {

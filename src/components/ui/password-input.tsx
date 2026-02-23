@@ -44,8 +44,8 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
                 {/* Expanding Background Circle */}
                 <div
                     className={cn(
-                        "absolute z-0 bg-primary/95 transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] rounded-full w-8 h-8 top-1/2 right-0.5 -translate-y-1/2 origin-center",
-                        isRevealed ? "scale-[35]" : "scale-0"
+                        "absolute z-0 bg-primary/95 transition-transform duration-800 ease-[cubic-bezier(0.4,0,0.2,1)] rounded-full w-10 h-10 top-1/2 right-0 -translate-y-1/2 origin-center",
+                        isRevealed ? "scale-[75]" : "scale-0"
                     )}
                 />
 

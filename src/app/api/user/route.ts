@@ -16,9 +16,6 @@ export async function POST(req: NextRequest) {
 
     const encryptedPassword = await bcrypt.hash(body.password, 10);
 
-    const userKey = generateUserKey(body.username);
-    const hashedUserKey = hashUserKey(userKey);
-
     const [newUser] = await db
       .insert(users)
       .values({
@@ -27,13 +24,12 @@ export async function POST(req: NextRequest) {
         email: body.email,
         createdAt: new Date(),
         password: encryptedPassword,
-        userKey: hashedUserKey,
         deleted: false,
       })
       .returning({ id: users.id });
 
     return NextResponse.json(
-      { success: true, message: "User created", key: userKey, id: newUser.id },
+      { success: true, message: "User created", id: newUser.id },
       { status: 201 },
     );
   } catch (e: unknown) {
