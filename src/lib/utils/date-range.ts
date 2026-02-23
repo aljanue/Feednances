@@ -17,26 +17,23 @@ function lastDayOfMonth(year: number, month: number): number {
   return new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
 }
 
-/** UTC midnight for the 1st of now's month */
-function utcStartOfMonth(now: Date): Date {
-  return utcDate(now.getUTCFullYear(), now.getUTCMonth(), 1);
-}
+/**
+ * Resolve the user's local year, month (0-indexed), and day from a timezone.
+ * This prevents the off-by-one bug where UTC midnight is still "yesterday"
+ * in the user's local time.
+ */
+function localParts(now: Date, timeZone: string): { year: number; month: number; day: number } {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
 
-/** UTC midnight for the last day of now's month */
-function utcEndOfMonth(now: Date): Date {
-  const y = now.getUTCFullYear();
-  const m = now.getUTCMonth();
-  return utcDate(y, m, lastDayOfMonth(y, m));
-}
-
-/** UTC midnight for today */
-function utcToday(now: Date): Date {
-  return utcDate(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
-}
-
-/** UTC midnight for Jan 1 of now's year */
-function utcStartOfYear(now: Date): Date {
-  return utcDate(now.getUTCFullYear(), 0, 1);
+  const year = Number(parts.find((p) => p.type === "year")!.value);
+  const month = Number(parts.find((p) => p.type === "month")!.value) - 1; // 0-indexed
+  const day = Number(parts.find((p) => p.type === "day")!.value);
+  return { year, month, day };
 }
 
 // --- Public range functions ---
@@ -44,50 +41,48 @@ function utcStartOfYear(now: Date): Date {
 export function getRangeForTimeValue(
   value: TimeRangeValue,
   now: Date,
+  timeZone = "UTC",
 ): DateRange {
-  const y = now.getUTCFullYear();
-  const m = now.getUTCMonth();
+  const { year: y, month: m } = localParts(now, timeZone);
+  const endOfMonth = utcDate(y, m, lastDayOfMonth(y, m));
 
   switch (value) {
     case "last-month":
       return {
-        start: utcStartOfMonth(now),
-        end: utcEndOfMonth(now),
+        start: utcDate(y, m, 1),
+        end: endOfMonth,
       };
     case "last-3-months": {
-      const sm = m - 2;
       return {
-        start: utcDate(y, sm, 1),
-        end: utcEndOfMonth(now),
+        start: utcDate(y, m - 2, 1),
+        end: endOfMonth,
       };
     }
     case "last-6-months": {
-      const sm = m - 5;
       return {
-        start: utcDate(y, sm, 1),
-        end: utcEndOfMonth(now),
+        start: utcDate(y, m - 5, 1),
+        end: endOfMonth,
       };
     }
     case "last-year": {
-      const sm = m - 11;
       return {
-        start: utcDate(y, sm, 1),
-        end: utcEndOfMonth(now),
+        start: utcDate(y, m - 11, 1),
+        end: endOfMonth,
       };
     }
   }
 }
 
-export function getMonthRange(now: Date): DateRange {
+export function getMonthRange(now: Date, timeZone = "UTC"): DateRange {
+  const { year, month, day } = localParts(now, timeZone);
   return {
-    start: utcStartOfMonth(now),
-    end: utcToday(now),
+    start: utcDate(year, month, 1),
+    end: utcDate(year, month, day),
   };
 }
 
-export function getPreviousMonthRange(now: Date): DateRange {
-  const y = now.getUTCFullYear();
-  const m = now.getUTCMonth();
+export function getPreviousMonthRange(now: Date, timeZone = "UTC"): DateRange {
+  const { year: y, month: m } = localParts(now, timeZone);
   const pm = m === 0 ? 11 : m - 1;
   const py = m === 0 ? y - 1 : y;
   return {
@@ -96,19 +91,18 @@ export function getPreviousMonthRange(now: Date): DateRange {
   };
 }
 
-export function getYearRange(now: Date): DateRange {
+export function getYearRange(now: Date, timeZone = "UTC"): DateRange {
+  const { year, month, day } = localParts(now, timeZone);
   return {
-    start: utcStartOfYear(now),
-    end: utcToday(now),
+    start: utcDate(year, 0, 1),
+    end: utcDate(year, month, day),
   };
 }
 
-export function getPreviousYearRange(now: Date): DateRange {
-  const y = now.getUTCFullYear();
-  const m = now.getUTCMonth();
-  const d = now.getUTCDate();
+export function getPreviousYearRange(now: Date, timeZone = "UTC"): DateRange {
+  const { year, month, day } = localParts(now, timeZone);
   return {
-    start: utcDate(y - 1, 0, 1),
-    end: utcDate(y - 1, m, Math.min(d, lastDayOfMonth(y - 1, m))),
+    start: utcDate(year - 1, 0, 1),
+    end: utcDate(year - 1, month, Math.min(day, lastDayOfMonth(year - 1, month))),
   };
 }

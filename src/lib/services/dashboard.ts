@@ -258,7 +258,7 @@ export async function getDashboardData(
     safeTimeZone = "UTC";
   }
 
-  const previousYearRange = getPreviousYearRange(now);
+  const previousYearRange = getPreviousYearRange(now, safeTimeZone);
   const maxRange = {
     start: previousYearRange.start,
     end: now,
@@ -275,7 +275,7 @@ export async function getDashboardData(
   const topSubscriptions = buildTopSubscriptions(subscriptionRows);
 
   const graphCardData = timeRanges.reduce<GraphCardData>((acc, range) => {
-    const bounds = getRangeForTimeValue(range, now);
+    const bounds = getRangeForTimeValue(range, now, safeTimeZone);
     const filtered = expenseRows.filter(
       (expense) =>
         expense.expenseDate >= bounds.start &&
@@ -293,10 +293,10 @@ export async function getDashboardData(
     return acc;
   }, {} as GraphCardData);
 
-  const monthRange = getMonthRange(now);
-  const prevMonthRange = getPreviousMonthRange(now);
-  const yearRange = getYearRange(now);
-  const prevYearRange = getPreviousYearRange(now);
+  const monthRange = getMonthRange(now, safeTimeZone);
+  const prevMonthRange = getPreviousMonthRange(now, safeTimeZone);
+  const yearRange = getYearRange(now, safeTimeZone);
+  const prevYearRange = getPreviousYearRange(now, safeTimeZone);
 
   const monthExpenses = expenseRows.filter(
     (expense) =>
@@ -389,7 +389,7 @@ export async function getDashboardData(
     },
   };
 
-  const averageRange = getRangeForTimeValue("last-6-months", now);
+  const averageRange = getRangeForTimeValue("last-6-months", now, safeTimeZone);
   const averageExpenses = expenseRows.filter(
     (expense) =>
       expense.expenseDate >= averageRange.start &&
