@@ -53,9 +53,9 @@ export const categories = pgTable(
     active: boolean("active").default(true),
     createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   },
-  (table) => ({
-    userIdIdx: index("categories_userId_idx").on(table.userId),
-  }),
+  (table) => [
+    index("categories_userId_idx").on(table.userId),
+  ],
 );
 
 /**
@@ -75,10 +75,10 @@ export const userHiddenCategories = pgTable(
       .references(() => categories.id, { onDelete: "cascade" }),
     deleted: boolean("deleted").default(true).notNull(),
   },
-  (table) => ({
-    pk: primaryKey({ columns: [table.userId, table.categoryId] }),
-    userIdIdx: index("user_hidden_categories_userId_idx").on(table.userId),
-  })
+  (table) => [
+    primaryKey({ columns: [table.userId, table.categoryId] }),
+    index("user_hidden_categories_userId_idx").on(table.userId),
+  ]
 );
 
 /**
@@ -103,12 +103,12 @@ export const accounts = pgTable(
     id_token: text("id_token"),
     session_state: text("session_state"),
   },
-  (table) => ({
-    compoundKey: primaryKey({
+  (table) => [
+    primaryKey({
       columns: [table.provider, table.providerAccountId],
     }),
-    userIdIdx: index("account_userId_idx").on(table.userId),
-  }),
+    index("account_userId_idx").on(table.userId),
+  ],
 );
 
 /**
@@ -157,13 +157,13 @@ export const userNotifications = pgTable(
     readAt: timestamp("read_at", { mode: "date" }),
     createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   },
-  (table) => ({
-    userIdIdx: index("user_notifications_user_id_idx").on(table.userId),
-    isReadIdx: index("user_notifications_is_read_idx").on(table.isRead),
-    createdAtIdx: index("user_notifications_created_at_idx").on(
+  (table) => [
+    index("user_notifications_user_id_idx").on(table.userId),
+    index("user_notifications_is_read_idx").on(table.isRead),
+    index("user_notifications_created_at_idx").on(
       table.createdAt,
     ),
-  }),
+  ],
 );
 
 /**
@@ -185,10 +185,10 @@ export const expenses = pgTable(
     categoryId: uuid("category_id").references(() => categories.id, { onDelete: "set null" }),
     isRecurring: boolean("is_recurring").default(false),
   },
-  (table) => ({
-    userIdIdx: index("expenses_userId_idx").on(table.userId),
-    categoryIdIdx: index("expenses_category_idx").on(table.categoryId),
-  }),
+  (table) => [
+    index("expenses_user_date_idx").on(table.userId, table.expenseDate),
+    index("expenses_category_idx").on(table.categoryId),
+  ],
 );
 
 /**
@@ -214,10 +214,11 @@ export const subscriptions = pgTable(
     active: boolean("active").default(true),
     startsAt: timestamp("starts_at", { mode: "date" }).defaultNow().notNull(),
   },
-  (table) => ({
-    userIdIdx: index("subscriptions_userId_idx").on(table.userId),
-    categoryIdIdx: index("subscriptions_categoryId_idx").on(table.categoryId),
-  }),
+  (table) => [
+    index("subscriptions_user_active_idx").on(table.userId, table.active),
+    index("subscriptions_active_nextrun_idx").on(table.active, table.nextRun),
+    index("subscriptions_categoryId_idx").on(table.categoryId),
+  ],
 );
 
 /* --- RELATIONS DEFINITIONS (Drizzle ORM Typed Relations) --- */

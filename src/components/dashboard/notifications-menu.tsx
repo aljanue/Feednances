@@ -20,7 +20,6 @@ import { swrFetcher } from "@/lib/utils/swr";
 import { notificationTypeMeta } from "@/lib/utils/notification-ui";
 import { cn } from "@/lib/utils";
 
-const NOTIFICATIONS_POLL_INTERVAL = 20000;
 
 export default function NotificationsMenu() {
   const [open, setOpen] = useState(false);
@@ -30,7 +29,6 @@ export default function NotificationsMenu() {
     "/api/notifications",
     swrFetcher,
     {
-      refreshInterval: NOTIFICATIONS_POLL_INTERVAL,
       revalidateOnFocus: true,
     },
   );
