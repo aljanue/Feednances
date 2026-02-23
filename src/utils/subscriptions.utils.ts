@@ -27,3 +27,22 @@ export function calculateNextRun(
       return addDays(baseDate, 30);
   }
 }
+
+export function calculateFutureNextRuns(
+  value: number | string,
+  type: string,
+  startsAt: Date
+): { nextRun: Date; pastRuns: Date[] } {
+  const now = new Date();
+  let next = new Date(startsAt);
+  const pastRuns: Date[] = [];
+
+  // Safety break to prevent infinite loops if inputs are messed up.
+  let iterations = 0;
+  while (next < now && iterations < 1000) {
+    pastRuns.push(new Date(next));
+    next = calculateNextRun(value, type, next);
+    iterations++;
+  }
+  return { nextRun: next, pastRuns };
+}

@@ -72,10 +72,10 @@ export async function POST(req: NextRequest) {
     const shouldChargeNow = startMidnight <= todayMidnight;
 
     let initialNextRun: Date;
-    let expenseData = null;
+    let expenseDataArray: any[] = [];
 
     if (shouldChargeNow) {
-      expenseData = {
+      expenseDataArray = [{
         userId: user.id,
         concept: `🔄 ${body.concept}`,
         amount: amountFormatted,
@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
         date: new Date(),
         expenseDate: startsAtDate,
         isRecurring: true,
-      };
+      }];
 
       initialNextRun = calculateNextRun(
         Number(body.periodValue),
@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
         active: true,
         startsAt: startsAtDate,
       },
-      expenseData,
+      expenseDataArray,
     );
 
     revalidatePath("/dashboard");

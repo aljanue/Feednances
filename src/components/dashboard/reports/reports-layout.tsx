@@ -80,7 +80,7 @@ function saveConfig(config: ReportPanelConfig) {
   }
 }
 
-// --- Empty-state helpers ---
+
 
 function hasData(data: ReportsDTO, panelId: ReportPanelId): boolean {
   switch (panelId) {
@@ -111,14 +111,14 @@ const EMPTY_MESSAGES: Record<ReportPanelId, string> = {
   "spending-pace": "Start spending this month to see pace projections.",
 };
 
-// Which panels go side-by-side in a 2-col grid
+
 const PAIRED_PANELS: [ReportPanelId, ReportPanelId][] = [
   ["category-spending", "daily-spending"],
   ["recurring-vs-onetime", "spending-pace"],
   ["subscription-costs", "top-expenses"],
 ];
 
-// Full-width panels
+
 const FULL_WIDTH_PANELS: ReportPanelId[] = ["monthly-comparison"];
 
 interface ReportsLayoutProps {
@@ -132,7 +132,7 @@ export default function ReportsLayout({ data }: ReportsLayoutProps) {
   const [animationDir, setAnimationDir] = useState<"up" | "down" | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
-  // Persist config changes
+
   useEffect(() => {
     saveConfig(config);
   }, [config]);
@@ -152,11 +152,11 @@ export default function ReportsLayout({ data }: ReportsLayoutProps) {
   }, []);
 
   const movePanel = useCallback((id: ReportPanelId, direction: "up" | "down") => {
-    // Trigger animation
+
     setAnimatingId(id);
     setAnimationDir(direction);
 
-    // Delay the actual reorder so the animation plays first
+
     setTimeout(() => {
       setConfig((prev) => {
         const order = [...prev.panelOrder];
@@ -179,10 +179,10 @@ export default function ReportsLayout({ data }: ReportsLayoutProps) {
     setConfig(defaults);
   }, []);
 
-  // Build ordered visible panels
+
   const orderedPanels = config.panelOrder.filter((id) => isVisible(id));
 
-  // Render panel content
+
   function renderPanelContent(id: ReportPanelId) {
     switch (id) {
       case "monthly-comparison":
@@ -202,7 +202,7 @@ export default function ReportsLayout({ data }: ReportsLayoutProps) {
     }
   }
 
-  // Group panels into rows for the grid
+
   function buildRows(): React.ReactNode[] {
     const rendered = new Set<ReportPanelId>();
     const rows: React.ReactNode[] = [];
@@ -210,7 +210,7 @@ export default function ReportsLayout({ data }: ReportsLayoutProps) {
     for (const panelId of orderedPanels) {
       if (rendered.has(panelId)) continue;
 
-      // Full-width panel
+
       if (FULL_WIDTH_PANELS.includes(panelId)) {
         rendered.add(panelId);
         rows.push(
@@ -221,7 +221,7 @@ export default function ReportsLayout({ data }: ReportsLayoutProps) {
         continue;
       }
 
-      // Try to find a pair
+
       const pair = PAIRED_PANELS.find(
         ([a, b]) =>
           (a === panelId || b === panelId) &&
@@ -382,7 +382,7 @@ export default function ReportsLayout({ data }: ReportsLayoutProps) {
   );
 }
 
-// --- Panel card wrapper ---
+
 
 function PanelCard({
   panelId,
@@ -399,7 +399,7 @@ function PanelCard({
 
   return (
     <SectionCard className="flex flex-col gap-4">
-      {/* Title row */}
+
       <div className="flex items-center justify-between">
         <div className="space-y-0.5">
           <div className="flex items-center gap-2">
@@ -420,7 +420,7 @@ function PanelCard({
         </div>
       </div>
 
-      {/* Filter row — separated from the title for breathing room */}
+
       {isFilterable && (
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-y-2 gap-x-3 pt-2 pb-1 border-t border-border/30">
           <span className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-wider shrink-0 hidden sm:block">
@@ -433,7 +433,7 @@ function PanelCard({
         </div>
       )}
 
-      {/* Content */}
+
       {empty ? (
         <div className="flex items-center justify-center py-12">
           <p className="text-sm text-muted-foreground italic">{EMPTY_MESSAGES[panelId]}</p>

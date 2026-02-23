@@ -36,7 +36,7 @@ const timeRanges: TimeRangeValue[] = [
   "last-year",
 ];
 
-// --- Helpers ---
+
 
 function toNumber(value: string | number | null | undefined) {
   if (value === null || value === undefined) return 0;
@@ -52,7 +52,7 @@ function percentChange(current: number, previous: number) {
   return (current - previous) / previous;
 }
 
-// --- Key Generators (UTC-safe, no date-fns local-timezone dependency) ---
+
 
 function monthKey(date: Date) {
   const y = date.getUTCFullYear();
@@ -65,7 +65,7 @@ function dayKey(date: Date) {
 }
 
 
-// --- Formatters ---
+
 
 function formatMonthLabel(date: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
@@ -83,7 +83,7 @@ function formatDayLabel(date: Date, timeZone: string) {
 }
 
 
-// --- Builders ---
+
 
 interface ExpenseWithCategory {
   amount: string | number;
@@ -108,7 +108,7 @@ function buildCategoryBreakdown(
   const entries = Array.from(totals.entries()).sort((a, b) => b[1] - a[1]);
   return entries.map(([category, total]) => {
     return {
-      id: category, // Use the name as ID to match nameKey in charts
+      id: category,
       category,
       total,
       color: categoryColors.get(category) || getChartColorForCategory(category),
@@ -270,7 +270,7 @@ function buildGraphRangeData(
   };
 }
 
-// --- Main Service ---
+
 
 export async function getDashboardData(
   userId: string,
@@ -449,7 +449,7 @@ export async function getDashboardData(
   const recentExpenses: RecentExpenseDTO[] = expenseRows
     .slice(0, 5)
     .map((expense) => {
-      // Map null category to a default structure for DTO
+
       const categoryFunc = (cat: typeof expense.category): CategoryDTO => {
         if (!cat) {
           return { id: "unknown", name: "Uncategorized", hexColor: null };

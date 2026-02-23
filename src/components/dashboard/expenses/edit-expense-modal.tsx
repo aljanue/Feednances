@@ -59,7 +59,7 @@ export default function EditExpenseModal({ expense }: EditExpenseModalProps) {
   useEffect(() => {
     if (open) {
       getCategoriesAction().then(setCategories);
-      // Reset date to current expense date when opening
+
       const [ey, em, ed] = expense.expenseDate.split("-").map(Number);
       setDate(new Date(ey, em - 1, ed));
       setValidationErrors({});
@@ -126,7 +126,7 @@ export default function EditExpenseModal({ expense }: EditExpenseModalProps) {
           />
 
           <div className="grid gap-4 py-4">
-            {/* Concept */}
+
             <div className="grid gap-2">
               <Label htmlFor="edit-concept">Concept</Label>
               <Input
@@ -144,7 +144,7 @@ export default function EditExpenseModal({ expense }: EditExpenseModalProps) {
               )}
             </div>
 
-            {/* Amount */}
+
             <div className="grid gap-2">
               <Label htmlFor="edit-amount">Amount</Label>
               <Input
@@ -165,7 +165,7 @@ export default function EditExpenseModal({ expense }: EditExpenseModalProps) {
               )}
             </div>
 
-            {/* Category */}
+
             <div className="grid gap-2">
               <Label htmlFor="edit-category">Category</Label>
               <Select
@@ -200,7 +200,7 @@ export default function EditExpenseModal({ expense }: EditExpenseModalProps) {
               )}
             </div>
 
-            {/* Date Picker */}
+
             <div className="grid gap-2">
               <Label htmlFor="edit-expenseDate">Date</Label>
               <Popover>

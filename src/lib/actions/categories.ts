@@ -121,14 +121,14 @@ export async function deleteCategoryAction(id: string): Promise<CategoryActionSt
     }
 
     if (category.userId === null) {
-      // Default category, hide it (soft delete via deleted=true)
+
       await hideCategory(session.user.id, id, true);
       await createNotificationForUser(session.user.id, {
         text: `Category deleted: ${category.name}`,
         type: "warning",
       });
     } else if (category.userId === session.user.id) {
-      // User category, delete it
+
       await deleteCategory(id);
       await createNotificationForUser(session.user.id, {
         text: `Category deleted: ${category.name}`,
@@ -160,22 +160,20 @@ export async function toggleCategoryAction(
     if (!category) return { error: "Category not found" };
 
     if (category.userId === null) {
-        // Default category logic
+
         if (isActive) {
             await unhideCategory(session.user.id, id);
         } else {
-            // Check if already hidden to prevent duplicate key error
+
             try {
                 await hideCategory(session.user.id, id);
             } catch (error) {
-                // If it fails, it might already be hidden, which is fine (?) 
-                // But actually, if we are toggling to false, it shouldn't be hidden yet if the UI is correct.
-                // However, let's be safe.
+
                 console.log("Category might already be hidden", error);
             }
         }
     } else {
-        // Custom category logic
+
         await updateCategory(id, { active: isActive });
     }
     

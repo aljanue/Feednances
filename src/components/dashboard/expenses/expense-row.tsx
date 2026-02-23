@@ -63,14 +63,14 @@ export default function ExpenseRow({ expense }: ExpenseRowProps) {
 
   return (
     <TableRow className="group transition-all hover:bg-muted/30 border-b-muted/20">
-      {/* Date */}
+
       <TableCell className="text-center py-4">
         <span className="text-sm font-medium text-muted-foreground/80">
           {format(date, "MMM d, yyyy")}
         </span>
       </TableCell>
 
-      {/* Transaction */}
+
       <TableCell className="py-4">
         <div className="flex items-center gap-4">
           <ExpenseIcon isRecurring={expense.isRecurring} />
@@ -82,7 +82,7 @@ export default function ExpenseRow({ expense }: ExpenseRowProps) {
         </div>
       </TableCell>
 
-      {/* Category */}
+
       <TableCell className="text-center hidden sm:table-cell py-4">
         <Badge
           variant="outline"
@@ -99,14 +99,14 @@ export default function ExpenseRow({ expense }: ExpenseRowProps) {
         </Badge>
       </TableCell>
 
-      {/* Amount */}
+
       <TableCell className="text-right py-4 pr-6">
         <span className="font-mono font-bold text-sm tracking-tighter text-foreground tabular-nums">
           {formatCurrency(expense.amount)}
         </span>
       </TableCell>
 
-      {/* Actions */}
+
       <TableCell className="text-right py-4 pr-4">
         <div className="flex items-center justify-end gap-1">
           <EditExpenseModal expense={expense} />
@@ -121,7 +121,7 @@ export default function ExpenseRow({ expense }: ExpenseRowProps) {
   );
 }
 
-// --- Subcomponents ---
+
 
 function ExpenseIcon({ isRecurring }: { isRecurring: boolean }) {
   if (isRecurring) {

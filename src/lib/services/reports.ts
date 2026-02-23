@@ -35,7 +35,7 @@ import type {
   ReportsPreset,
 } from "@/lib/dtos/reports.dto";
 
-// --- UTC-safe interval helpers ---
+
 
 function eachDayUTC(start: Date, end: Date): Date[] {
   const days: Date[] = [];
@@ -66,7 +66,7 @@ function eachMonthUTC(start: Date, end: Date): Date[] {
   return months;
 }
 
-// --- Helpers ---
+
 
 function toNumber(v: string | number | null | undefined): number {
   if (v === null || v === undefined) return 0;
@@ -86,7 +86,7 @@ function formatDayLabel(date: Date, timeZone: string): string {
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone }).format(date);
 }
 
-// --- Chart filter resolver ---
+
 
 const VALID_PRESETS = new Set<string>([
   "this-month", "last-month", "last-7", "last-30", "last-90", "this-year",
@@ -99,7 +99,7 @@ function resolveChartFilterRange(
 ): { start: Date; end: Date; preset: ReportsPreset | "custom" } {
   const { year: y, month: m, day: d } = localParts(now, timeZone);
 
-  // Custom date range
+
   if (filter?.dateFrom && filter?.dateTo) {
     const [fy, fm, fd] = filter.dateFrom.split("-").map(Number);
     const [ty, tm, td] = filter.dateTo.split("-").map(Number);
@@ -110,7 +110,7 @@ function resolveChartFilterRange(
     };
   }
 
-  // Preset range
+
   const preset = filter?.preset && VALID_PRESETS.has(filter.preset)
     ? (filter.preset as ReportsPreset)
     : "this-month";
@@ -153,7 +153,7 @@ function resolveFilterOutput(
   };
 }
 
-// --- Main Service ---
+
 
 export async function getReportsData(
   userId: string,
@@ -169,18 +169,18 @@ export async function getReportsData(
     safeTimeZone = "UTC";
   }
 
-  // Date ranges — fixed ranges for KPIs/pace
+
   const monthRange = getMonthRange(now, safeTimeZone);
   const prevMonthRange = getPreviousMonthRange(now, safeTimeZone);
   const yearRange = getYearRange(now, safeTimeZone);
   const prevYearRange = getPreviousYearRange(now, safeTimeZone);
 
-  // Per-panel filtered ranges
+
   const dsFilter = resolveFilterOutput(chartFilters?.["daily-spending"], now, safeTimeZone);
   const csFilter = resolveFilterOutput(chartFilters?.["category-spending"], now, safeTimeZone);
   const teFilter = resolveFilterOutput(chartFilters?.["top-expenses"], now, safeTimeZone);
 
-  // Parallel data fetching — 12 queries
+
   const [
     currentMonthAgg,
     prevMonthAgg,
@@ -209,7 +209,7 @@ export async function getReportsData(
     getRecurringTotal(userId, monthRange.start, monthRange.end),
   ]);
 
-  // --- KPIs ---
+
   const monthlySpend: ReportKPI = {
     title: "Spent This Month",
     value: currentMonthAgg.total,
@@ -291,7 +291,7 @@ export async function getReportsData(
     subtitle: `${(recurringRatioValue * 100).toFixed(1)}% of monthly spend is recurring`,
   };
 
-  // --- Monthly Comparison ---
+
   const currentYearMonthMap = new Map(
     monthlyCurrentYear.map((r) => [r.month, toNumber(r.total)]),
   );
@@ -314,7 +314,7 @@ export async function getReportsData(
     };
   });
 
-  // --- Category Spending (uses its own filter) ---
+
   const categoryTotal = categoryData.reduce((sum, r) => sum + toNumber(r.total), 0);
   const categorySpending: CategorySpendingItem[] = categoryData.map((r) => ({
     name: r.categoryName?.trim() || "Uncategorized",
@@ -323,7 +323,7 @@ export async function getReportsData(
     percentage: categoryTotal > 0 ? (toNumber(r.total) / categoryTotal) * 100 : 0,
   }));
 
-  // --- Daily Spending (uses its own filter) ---
+
   const dailyMap = new Map(
     dailyData.map((r) => [r.date, toNumber(r.total)]),
   );
@@ -337,7 +337,7 @@ export async function getReportsData(
     };
   });
 
-  // --- Subscription Costs ---
+
   const subscriptionCosts: SubscriptionCostItem[] = subscriptions.map((s) => ({
     name: s.name,
     amount: toNumber(s.amount),
@@ -349,7 +349,7 @@ export async function getReportsData(
         : 0,
   }));
 
-  // --- Top Expenses (uses its own filter) ---
+
   const topExpenses: TopExpenseItem[] = topExpensesData.map((e) => ({
     concept: e.concept,
     amount: toNumber(e.amount),
@@ -358,7 +358,7 @@ export async function getReportsData(
     date: e.expenseDate.toISOString(),
   }));
 
-  // --- Recurring vs One-Time ---
+
   const recurringMap = new Map<string, { recurring: number; oneTime: number }>();
   for (const row of recurringVsOneTimeRaw) {
     const existing = recurringMap.get(row.month) ?? { recurring: 0, oneTime: 0 };
@@ -380,7 +380,7 @@ export async function getReportsData(
     };
   });
 
-  // --- Spending Pace ---
+
   const totalDaysInMonth = getDaysInMonth(now);
   const projectedSpend = daysElapsed > 0
     ? (currentMonthAgg.total / daysElapsed) * totalDaysInMonth
@@ -395,7 +395,7 @@ export async function getReportsData(
     dailyAverage: dailyAvgValue,
   };
 
-  // --- Per-panel active filters ---
+
   const chartFiltersOutput: ReportsActiveChartFilters = {
     "daily-spending": dsFilter.active,
     "category-spending": csFilter.active,

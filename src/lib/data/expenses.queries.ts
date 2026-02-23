@@ -74,7 +74,7 @@ export async function updateExpense(
     .returning();
 }
 
-// --- Filter & Sort helpers ---
+
 
 interface PaginatedFilters {
   search?: string;
@@ -170,29 +170,29 @@ export async function getExpensesSummary(userId: string) {
   const m = now.getUTCMonth(); // 0-indexed
   const d = now.getUTCDate();
 
-  // Helper: create a Date at UTC midnight for a given year/month/day
+
   const utcDate = (year: number, month: number, day: number) =>
     new Date(Date.UTC(year, month, day));
 
-  // Last day of a given month (0-indexed)
+
   const lastDay = (year: number, month: number) =>
     new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
 
-  // Current month: 1st → today
+
   const monthStart = utcDate(y, m, 1);
   const monthEnd = utcDate(y, m, d);
 
-  // Current year: Jan 1 → today
+
   const yearStart = utcDate(y, 0, 1);
   const yearEnd = utcDate(y, m, d);
 
-  // Previous month — full natural month (1st → last day)
+
   const pm = m === 0 ? 11 : m - 1;
   const py = m === 0 ? y - 1 : y;
   const prevMonthStart = utcDate(py, pm, 1);
   const prevMonthEnd = utcDate(py, pm, lastDay(py, pm));
 
-  // Previous year — same day-of-year window (Jan 1 → same month/day)
+
   const prevYearStart = utcDate(y - 1, 0, 1);
   const prevYearEnd = utcDate(y - 1, m, Math.min(d, lastDay(y - 1, m)));
 
@@ -206,32 +206,32 @@ export async function getExpensesSummary(userId: string) {
     allAgg,
     prevMonthAllAgg,
   ] = await Promise.all([
-    // Current month
+
     db
       .select({ total: sum(expenses.amount) })
       .from(expenses)
       .where(and(userFilter, gte(expenses.expenseDate, monthStart), lte(expenses.expenseDate, monthEnd))),
-    // Previous month
+
     db
       .select({ total: sum(expenses.amount) })
       .from(expenses)
       .where(and(userFilter, gte(expenses.expenseDate, prevMonthStart), lte(expenses.expenseDate, prevMonthEnd))),
-    // Current year-to-date
+
     db
       .select({ total: sum(expenses.amount) })
       .from(expenses)
       .where(and(userFilter, gte(expenses.expenseDate, yearStart), lte(expenses.expenseDate, yearEnd))),
-    // Previous year same period
+
     db
       .select({ total: sum(expenses.amount) })
       .from(expenses)
       .where(and(userFilter, gte(expenses.expenseDate, prevYearStart), lte(expenses.expenseDate, prevYearEnd))),
-    // All-time avg + count
+
     db
       .select({ avg: avg(expenses.amount), count: count() })
       .from(expenses)
       .where(userFilter),
-    // Previous month avg + count (for comparison)
+
     db
       .select({ avg: avg(expenses.amount), count: count() })
       .from(expenses)

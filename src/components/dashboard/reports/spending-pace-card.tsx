@@ -12,26 +12,26 @@ export default function SpendingPaceCard({ data }: SpendingPaceCardProps) {
   const { daysElapsed, totalDays, currentSpend, projectedSpend, lastMonthTotal, dailyAverage } = data;
   const progressPercent = totalDays > 0 ? (daysElapsed / totalDays) * 100 : 0;
 
-  // How projected compares to last month
+
   const paceRatio = lastMonthTotal > 0 ? projectedSpend / lastMonthTotal : 0;
   const isOverPace = paceRatio > 1;
   const isUnderPace = paceRatio > 0 && paceRatio <= 1;
 
-  // Gauge angle: 0-180 degrees representing 0% to 200% of last month
-  const gaugePercent = Math.min(paceRatio * 50, 100); // Clamp to 200% max
+
+  const gaugePercent = Math.min(paceRatio * 50, 100);
   const angle = (gaugePercent / 100) * 180;
 
-  // Stroke dash for the arc
+
   const radius = 80;
   const circumference = Math.PI * radius;
   const strokeDash = (angle / 180) * circumference;
 
   return (
     <div className="flex flex-col items-center gap-6 py-2">
-      {/* Gauge */}
+
       <div className="relative w-[200px] h-[110px]">
         <svg viewBox="0 0 200 110" className="w-full h-full overflow-visible">
-          {/* Background arc */}
+
           <path
             d="M 10 100 A 80 80 0 0 1 190 100"
             fill="none"
@@ -40,7 +40,7 @@ export default function SpendingPaceCard({ data }: SpendingPaceCardProps) {
             strokeLinecap="round"
             opacity={0.3}
           />
-          {/* Foreground arc */}
+
           <path
             d="M 10 100 A 80 80 0 0 1 190 100"
             fill="none"
@@ -50,7 +50,7 @@ export default function SpendingPaceCard({ data }: SpendingPaceCardProps) {
             strokeDasharray={`${strokeDash} ${circumference}`}
             className="transition-all duration-700 ease-out"
           />
-          {/* Center text */}
+
           <text
             x="100"
             y="78"
@@ -72,7 +72,7 @@ export default function SpendingPaceCard({ data }: SpendingPaceCardProps) {
         </svg>
       </div>
 
-      {/* Stats grid */}
+
       <div className="grid grid-cols-2 gap-4 w-full">
         <StatBox
           label="Current Spend"

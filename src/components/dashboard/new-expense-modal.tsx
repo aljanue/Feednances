@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import { useSWRConfig } from "swr";
 
 import { Button } from "../ui/button";
-import { Calendar } from "../ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -20,15 +19,6 @@ import {
 } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
-import { cn } from "@/lib/utils";
 
 import { createExpenseAction } from "@/lib/actions/expenses";
 import { getCategoriesAction } from "@/lib/actions/categories";
@@ -37,12 +27,13 @@ import type {
   NotificationsResponseDTO,
 } from "@/lib/dtos/notifications";
 import { NotificationToast } from "@/components/shared/notification-toast";
+import { FormCategorySelect } from "@/components/dashboard/shared/form-category-select";
+import { FormDatePicker } from "@/components/dashboard/shared/form-date-picker";
 
 export default function NewExpenseModal() {
   const router = useRouter();
   const { mutate } = useSWRConfig();
 
-  // Estados locales
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState<Date>();
   const [categories, setCategories] = useState<{ id: string; name: string; hexColor: string | null }[]>([]);
@@ -59,7 +50,6 @@ export default function NewExpenseModal() {
     }
   }, [open]);
 
-  // Helper para la actualización optimista (DRY)
   const updateNotificationsCache = (newNotification: NotificationItemDTO) => {
     mutate(
       "/api/user/me",
@@ -97,24 +87,18 @@ export default function NewExpenseModal() {
           />
         ));
 
-        // Actualización Optimista de SWR
         if (result.notification) {
           updateNotificationsCache(result.notification);
         }
 
-        // Limpieza y Cierre
         setOpen(false);
         setDate(undefined);
         formRef.current?.reset();
-
-        // Revalidación real en segundo plano
         mutate("/api/user/me");
-        router.refresh(); // Actualiza las gráficas del dashboard
+        router.refresh();
       } else if (result.fieldErrors) {
-        // ⚠️ ERRORES DE VALIDACIÓN (Zod)
         setValidationErrors(result.fieldErrors);
       } else {
-        // ❌ ERROR GENÉRICO (Base de datos, etc.)
         toast.custom(() => (
           <NotificationToast
             title="Error creating expense"
@@ -140,7 +124,6 @@ export default function NewExpenseModal() {
         </DialogHeader>
 
         <form ref={formRef} onSubmit={handleSubmit}>
-          {/* Input oculto para la fecha */}
           <input
             type="hidden"
             name="expenseDate"
@@ -148,7 +131,6 @@ export default function NewExpenseModal() {
           />
 
           <div className="grid gap-4 py-4">
-            {/* Concepto */}
             <div className="grid gap-2">
               <Label htmlFor="concept">Concept</Label>
               <Input
@@ -165,7 +147,6 @@ export default function NewExpenseModal() {
               )}
             </div>
 
-            {/* Cantidad */}
             <div className="grid gap-2">
               <Label htmlFor="amount">Amount</Label>
               <Input
@@ -185,73 +166,20 @@ export default function NewExpenseModal() {
               )}
             </div>
 
-            {/* Categoría */}
-            <div className="grid gap-2">
-              <Label htmlFor="category">Category</Label>
-              <Select name="category" disabled={isPending} required>
-                <SelectTrigger id="category">
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="size-2 rounded-full shadow-sm"
-                          style={{
-                            backgroundColor: cat.hexColor ?? "var(--foreground)",
-                          }}
-                        />
-                        {cat.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {validationErrors.category && (
-                <p className="text-sm font-medium text-destructive">
-                  {validationErrors.category}
-                </p>
-              )}
-            </div>
+            <FormCategorySelect
+              categories={categories}
+              isPending={isPending}
+              error={validationErrors.category}
+            />
 
-            {/* Selector de Fecha */}
-            <div className="grid gap-2">
-              <Label htmlFor="expenseDate">Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    disabled={isPending}
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !date && "text-muted-foreground",
-                      validationErrors.expenseDate &&
-                        "border-destructive text-destructive",
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "PPP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    disabled={(date) =>
-                      date > new Date() || date < new Date("1900-01-01")
-                    }
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              {validationErrors.expenseDate && (
-                <p className="text-sm font-medium text-destructive">
-                  {validationErrors.expenseDate}
-                </p>
-              )}
-            </div>
+            <FormDatePicker
+              date={date}
+              setDate={setDate}
+              isPending={isPending}
+              error={validationErrors.expenseDate}
+              label="Date"
+              name="expenseDate"
+            />
           </div>
 
           <DialogFooter>

@@ -114,7 +114,7 @@ export default function ExpensesTable({
 
   return (
     <SectionCard padding="compact" className="flex flex-col overflow-hidden">
-      {/* Header + Filters */}
+
       <div className="p-6 pb-2">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
@@ -145,7 +145,7 @@ export default function ExpensesTable({
         />
       </div>
 
-      {/* Table Section */}
+
       <div className="flex-1 px-1">
         <div className="rounded-lg overflow-hidden border border-muted/20 bg-card/20 mx-4 mb-2">
           <Table>
@@ -215,7 +215,7 @@ export default function ExpensesTable({
         </div>
       </div>
 
-      {/* Pagination */}
+
       <ExpensesTablePagination
         currentPage={currentPage}
         totalPages={totalPages}
@@ -225,7 +225,7 @@ export default function ExpensesTable({
   );
 }
 
-// --- Sort Button (small, stays co-located with the table header) ---
+
 
 function SortButton({
   label,

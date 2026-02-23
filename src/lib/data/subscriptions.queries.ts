@@ -4,11 +4,11 @@ import { and, desc, eq, lte, between } from "drizzle-orm";
 
 export async function createSubscriptionWithTransaction(
   subscriptionData: typeof subscriptions.$inferInsert,
-  expenseData: typeof expenses.$inferInsert | null,
+  expenseDataArray: (typeof expenses.$inferInsert)[],
 ) {
   return await db.transaction(async (tx) => {
-    if (expenseData) {
-      await tx.insert(expenses).values(expenseData);
+    if (expenseDataArray.length > 0) {
+      await tx.insert(expenses).values(expenseDataArray);
     }
     return await tx.insert(subscriptions).values(subscriptionData).returning();
   });
@@ -106,4 +106,30 @@ export async function processSubscriptionCharge(
       .set({ nextRun: newNextRun })
       .where(eq(subscriptions.id, sub.id));
   });
+}
+
+export async function getUserSubscriptions(userId: string) {
+  return await db.query.subscriptions.findMany({
+    where: eq(subscriptions.userId, userId),
+    with: {
+      timeUnit: true,
+      category: true,
+    },
+    orderBy: [desc(subscriptions.active), desc(subscriptions.amount)],
+  });
+}
+
+export async function deleteSubscription(id: string, userId: string) {
+  return await db
+    .delete(subscriptions)
+    .where(and(eq(subscriptions.id, id), eq(subscriptions.userId, userId)))
+    .returning();
+}
+
+export async function toggleSubscriptionStatus(id: string, userId: string, active: boolean) {
+  return await db
+    .update(subscriptions)
+    .set({ active })
+    .where(and(eq(subscriptions.id, id), eq(subscriptions.userId, userId)))
+    .returning();
 }

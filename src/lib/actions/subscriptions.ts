@@ -1,0 +1,183 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { auth } from "@/auth";
+import { deleteSubscription, toggleSubscriptionStatus, createSubscriptionWithTransaction } from "@/lib/data/subscriptions.queries";
+import { createNotificationForUser } from "@/lib/services/notifications";
+import { validateSubscriptionForm } from "@/lib/validations/subscription";
+import { formatAmount } from "@/utils/format-data.utils";
+import { calculateFutureNextRuns } from "@/utils/subscriptions.utils";
+import { getTimeUnitById } from "@/lib/data/time-units.queries";
+import type { NotificationItemDTO } from "@/lib/dtos/notifications";
+
+export interface SubscriptionActionState {
+  success?: boolean;
+  error?: string;
+  fieldErrors?: Record<string, string>;
+  actionId?: number;
+  notification?: NotificationItemDTO;
+}
+
+export async function createSubscriptionAction(
+  _prevState: SubscriptionActionState,
+  formData: FormData,
+): Promise<SubscriptionActionState> {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return { error: "Unauthorized.", actionId: Date.now() };
+  }
+
+  const validation = validateSubscriptionForm(formData);
+  if (!validation.success) {
+    return {
+      fieldErrors: validation.fieldErrors,
+      actionId: Date.now(),
+    };
+  }
+
+  const { name, amount, category, timeUnitId, frequencyValue, startsAt, recordPastPayment } = validation.data;
+
+  let amountFormatted: string;
+  try {
+    amountFormatted = formatAmount(amount);
+  } catch (error) {
+    return {
+      fieldErrors: {
+        amount: error instanceof Error ? error.message : "Invalid amount.",
+      },
+      actionId: Date.now(),
+    };
+  }
+
+  try {
+    const parsedStartsAt = new Date(startsAt);
+    const parsedFrequency = Number(frequencyValue);
+
+    const dbTimeUnit = await getTimeUnitById(timeUnitId);
+    if (!dbTimeUnit) {
+      return { error: "Invalid billing period.", actionId: Date.now() };
+    }
+
+    const now = new Date();
+    
+    // Normalize dates to start of day for comparison to avoid timezone issues
+    const startsAtNormalized = new Date(parsedStartsAt.setHours(0, 0, 0, 0));
+    const nowNormalized = new Date(now.setHours(0, 0, 0, 0));
+
+    let nextRun = startsAtNormalized;
+    let initialExpenses: any[] = [];
+
+    if (startsAtNormalized < nowNormalized) {
+      const { nextRun: computedNextRun, pastRuns } = calculateFutureNextRuns(parsedFrequency, dbTimeUnit.value, startsAtNormalized);
+      nextRun = computedNextRun;
+      
+      if (recordPastPayment && pastRuns.length > 0) {
+        initialExpenses = pastRuns.map((pastDate) => ({
+          amount: amountFormatted,
+          concept: name,
+          categoryId: category,
+          userId: session.user!.id,
+          date: new Date(), 
+          expenseDate: pastDate,
+          isRecurring: true,
+        }));
+      }
+    }
+
+    await createSubscriptionWithTransaction(
+      {
+        name,
+        amount: amountFormatted,
+        userId: session.user.id,
+        categoryId: category,
+        frequencyValue: parsedFrequency,
+        timeUnitId: timeUnitId,
+        active: true,
+        startsAt: startsAtNormalized,
+        nextRun: nextRun,
+      },
+      initialExpenses
+    );
+
+    const notification = await createNotificationForUser(session.user.id, {
+      text: `Subscription created: ${name}`,
+      type: "success",
+    });
+
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/subscriptions");
+
+    return { success: true, actionId: Date.now(), notification };
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unable to create subscription.";
+
+    let notification: NotificationItemDTO | undefined;
+    try {
+      notification = await createNotificationForUser(session.user.id, {
+        text: "Subscription creation failed.",
+        type: "error",
+      });
+    } catch {
+      notification = undefined;
+    }
+
+    return { error: message, actionId: Date.now(), notification };
+  }
+}
+
+export async function deleteSubscriptionAction(id: string): Promise<SubscriptionActionState> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { error: "Unauthorized" };
+  }
+
+  try {
+    const deleted = await deleteSubscription(id, session.user.id);
+    
+    if (!deleted || deleted.length === 0) {
+      return { error: "Subscription not found or not authorized to delete" };
+    }
+
+    await createNotificationForUser(session.user.id, {
+      text: `Subscription deleted: ${deleted[0].name}`,
+      type: "warning",
+    });
+
+    revalidatePath("/dashboard/subscriptions");
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting subscription:", error);
+    return { error: "Failed to delete subscription" };
+  }
+}
+
+export async function toggleSubscriptionAction(
+  id: string,
+  isActive: boolean
+): Promise<SubscriptionActionState> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { error: "Unauthorized" };
+  }
+
+  try {
+    const updated = await toggleSubscriptionStatus(id, session.user.id, isActive);
+    
+    if (!updated || updated.length === 0) {
+       return { error: "Subscription not found or not authorized to update" };
+    }
+
+    await createNotificationForUser(session.user.id, {
+      text: `Subscription ${isActive ? 'enabled' : 'disabled'}: ${updated[0].name}`,
+      type: "info",
+    });
+
+    revalidatePath("/dashboard/subscriptions");
+    return { success: true };
+  } catch (error) {
+    console.error("Error toggling subscription:", error);
+    return { error: "Failed to toggle subscription" };
+  }
+}
