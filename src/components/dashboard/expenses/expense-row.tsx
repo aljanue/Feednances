@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { ReceiptText, RefreshCcw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -34,7 +34,8 @@ interface ExpenseRowProps {
 export default function ExpenseRow({ expense }: ExpenseRowProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const date = parseISO(expense.expenseDate);
+  const [y, m, d] = expense.expenseDate.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
 
   const handleDelete = () => {
     startTransition(async () => {

@@ -1,11 +1,7 @@
 import {
   differenceInCalendarMonths,
-  eachDayOfInterval,
-  eachMonthOfInterval,
-  format,
-  startOfDay,
-  startOfMonth,
 } from "date-fns";
+import { utcDate } from "@/lib/utils/date-range";
 import { getExpensesByDateRange } from "@/lib/data/expenses.queries";
 import { getActiveSubscriptions } from "@/lib/data/subscriptions.queries";
 import type {
@@ -56,14 +52,16 @@ function percentChange(current: number, previous: number) {
   return (current - previous) / previous;
 }
 
-// --- Key Generators ---
+// --- Key Generators (UTC-safe, no date-fns local-timezone dependency) ---
 
 function monthKey(date: Date) {
-  return format(startOfMonth(date), "yyyy-MM");
+  const y = date.getUTCFullYear();
+  const m = String(date.getUTCMonth() + 1).padStart(2, "0");
+  return `${y}-${m}`;
 }
 
 function dayKey(date: Date) {
-  return format(startOfDay(date), "yyyy-MM-dd");
+  return date.toISOString().slice(0, 10);
 }
 
 
@@ -118,13 +116,42 @@ function buildCategoryBreakdown(
   });
 }
 
+function eachDayUTC(start: Date, end: Date): Date[] {
+  const days: Date[] = [];
+  let y = start.getUTCFullYear();
+  let m = start.getUTCMonth();
+  let d = start.getUTCDate();
+  const endTime = end.getTime();
+  while (true) {
+    const date = utcDate(y, m, d);
+    if (date.getTime() > endTime) break;
+    days.push(date);
+    d++;
+  }
+  return days;
+}
+
+function eachMonthUTC(start: Date, end: Date): Date[] {
+  const months: Date[] = [];
+  let y = start.getUTCFullYear();
+  let m = start.getUTCMonth();
+  const endTime = end.getTime();
+  while (true) {
+    const date = utcDate(y, m, 1);
+    if (date.getTime() > endTime) break;
+    months.push(date);
+    m++;
+  }
+  return months;
+}
+
 function buildExpenseTrend(
   items: { expenseDate: Date; amount: string | number }[],
   rangeStart: Date,
   rangeEnd: Date,
   timeZone: string,
 ): ExpenseTrendPoint[] {
-  const buckets = eachDayOfInterval({ start: rangeStart, end: rangeEnd });
+  const buckets = eachDayUTC(rangeStart, rangeEnd);
   const getKey = dayKey;
   const getLabel = (d: Date) => formatDayLabel(d, timeZone);
 
@@ -156,10 +183,9 @@ function buildFixedVariableSeries(
   rangeEnd: Date,
   timeZone: string,
 ): FixedVariablePoint[] {
-  const buckets = eachMonthOfInterval({
-    start: startOfMonth(rangeStart),
-    end: startOfMonth(rangeEnd),
-  });
+  const startMonth = utcDate(rangeStart.getUTCFullYear(), rangeStart.getUTCMonth(), 1);
+  const endMonth = utcDate(rangeEnd.getUTCFullYear(), rangeEnd.getUTCMonth(), 1);
+  const buckets = eachMonthUTC(startMonth, endMonth);
 
   const totals = new Map<string, { fixed: number; variable: number }>();
   for (const bucket of buckets) {
@@ -440,7 +466,7 @@ export async function getDashboardData(
         concept: expense.concept,
         amount: toNumber(expense.amount),
         category: categoryFunc(expense.category),
-        expenseDate: expense.expenseDate.toISOString(),
+        expenseDate: expense.expenseDate.toISOString().slice(0, 10),
         isRecurring: Boolean(expense.isRecurring),
       };
     });

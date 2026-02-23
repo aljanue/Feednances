@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { CalendarIcon, Loader2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
@@ -42,8 +42,9 @@ export default function EditExpenseModal({ expense }: EditExpenseModalProps) {
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
+  const [iy, im, id] = expense.expenseDate.split("-").map(Number);
   const [date, setDate] = useState<Date | undefined>(
-    parseISO(expense.expenseDate),
+    new Date(iy, im - 1, id),
   );
   const [categories, setCategories] = useState<{ id: string; name: string; hexColor: string | null }[]>(
     [],
@@ -59,7 +60,8 @@ export default function EditExpenseModal({ expense }: EditExpenseModalProps) {
     if (open) {
       getCategoriesAction().then(setCategories);
       // Reset date to current expense date when opening
-      setDate(parseISO(expense.expenseDate));
+      const [ey, em, ed] = expense.expenseDate.split("-").map(Number);
+      setDate(new Date(ey, em - 1, ed));
       setValidationErrors({});
     }
   }, [open, expense.expenseDate]);

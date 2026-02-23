@@ -7,7 +7,7 @@ import ExpensesTable from "@/components/dashboard/expenses/expenses-table";
 import MainSection from "@/components/dashboard/main-section";
 import TitleHeader from "@/components/dashboard/title-header";
 import NewExpenseModal from "@/components/dashboard/new-expense-modal";
-import { getExpensesPageData } from "@/lib/services/expenses.service";
+import { getExpensesPageData } from "@/lib/services/expenses";
 import type { ExpenseSortField, SortDirection } from "@/lib/dtos/expenses.dto";
 
 const VALID_SORT_FIELDS: ExpenseSortField[] = ["expenseDate", "amount", "concept"];

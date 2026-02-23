@@ -1,4 +1,4 @@
-import { eachDayOfInterval, eachMonthOfInterval, format, startOfDay, getDaysInMonth } from "date-fns";
+import { getDaysInMonth } from "date-fns";
 import {
   getMonthlyExpenseTotals,
   getCategorySpending,
@@ -15,6 +15,8 @@ import {
   getPreviousMonthRange,
   getYearRange,
   getPreviousYearRange,
+  utcDate,
+  localParts,
 } from "@/lib/utils/date-range";
 import type {
   ReportsDTO,
@@ -27,6 +29,37 @@ import type {
   RecurringVsOneTimePoint,
   SpendingPaceDTO,
 } from "@/lib/dtos/reports.dto";
+
+// --- UTC-safe interval helpers ---
+
+function eachDayUTC(start: Date, end: Date): Date[] {
+  const days: Date[] = [];
+  let y = start.getUTCFullYear();
+  const m = start.getUTCMonth();
+  let d = start.getUTCDate();
+  const endTime = end.getTime();
+  while (true) {
+    const date = utcDate(y, m, d);
+    if (date.getTime() > endTime) break;
+    days.push(date);
+    d++;
+  }
+  return days;
+}
+
+function eachMonthUTC(start: Date, end: Date): Date[] {
+  const months: Date[] = [];
+  let y = start.getUTCFullYear();
+  let m = start.getUTCMonth();
+  const endTime = end.getTime();
+  while (true) {
+    const date = utcDate(y, m, 1);
+    if (date.getTime() > endTime) break;
+    months.push(date);
+    m++;
+  }
+  return months;
+}
 
 // --- Helpers ---
 
@@ -145,7 +178,7 @@ export async function getReportsData(
     period: "month",
   };
 
-  const daysElapsed = now.getUTCDate();
+  const { day: daysElapsed } = localParts(now, safeTimeZone);
   const dailyAvgValue = daysElapsed > 0 ? currentMonthAgg.total / daysElapsed : 0;
   const prevDaysInMonth = getDaysInMonth(prevMonthRange.start);
   const prevDailyAvg = prevDaysInMonth > 0 ? prevMonthAgg.total / prevDaysInMonth : 0;
@@ -193,15 +226,13 @@ export async function getReportsData(
   );
 
   const currentYear = yearRange.start.getUTCFullYear();
-  const monthBuckets = eachMonthOfInterval({
-    start: yearRange.start,
-    end: yearRange.end,
-  });
+  const monthBuckets = eachMonthUTC(yearRange.start, yearRange.end);
 
   const monthlyComparison: MonthlyComparisonPoint[] = monthBuckets.map((d) => {
     const m = d.getUTCMonth();
-    const currentKey = format(d, "yyyy-MM");
-    const prevKey = format(new Date(Date.UTC(currentYear - 1, m, 1)), "yyyy-MM");
+    const currentKey = `${d.getUTCFullYear()}-${String(m + 1).padStart(2, "0")}`;
+    const prevDate = utcDate(currentYear - 1, m, 1);
+    const prevKey = `${prevDate.getUTCFullYear()}-${String(prevDate.getUTCMonth() + 1).padStart(2, "0")}`;
     return {
       month: formatMonthLabel(d, safeTimeZone),
       current: currentYearMonthMap.get(currentKey) ?? 0,
@@ -222,12 +253,9 @@ export async function getReportsData(
   const dailyMap = new Map(
     dailyData.map((r) => [r.date, toNumber(r.total)]),
   );
-  const dayBuckets = eachDayOfInterval({
-    start: monthRange.start,
-    end: monthRange.end,
-  });
+  const dayBuckets = eachDayUTC(monthRange.start, monthRange.end);
   const dailySpending: DailySpendingPoint[] = dayBuckets.map((d) => {
-    const key = format(startOfDay(d), "yyyy-MM-dd");
+    const key = d.toISOString().slice(0, 10);
     return {
       date: key,
       label: formatDayLabel(d, safeTimeZone),
@@ -269,7 +297,7 @@ export async function getReportsData(
   }
 
   const recurringVsOneTime: RecurringVsOneTimePoint[] = monthBuckets.map((d) => {
-    const key = format(d, "yyyy-MM");
+    const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
     const data = recurringMap.get(key) ?? { recurring: 0, oneTime: 0 };
     return {
       month: formatMonthLabel(d, safeTimeZone),

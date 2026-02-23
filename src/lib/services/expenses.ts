@@ -75,7 +75,7 @@ export async function getExpensesPageData(
     id: expense.id,
     concept: expense.concept,
     amount: toNumber(expense.amount),
-    expenseDate: expense.expenseDate.toISOString(),
+    expenseDate: expense.expenseDate.toISOString().slice(0, 10),
     category: mapCategory(expense.category),
     isRecurring: Boolean(expense.isRecurring),
   }));

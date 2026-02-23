@@ -8,7 +8,7 @@ export interface DateRange {
 // --- UTC-safe helpers for PostgreSQL `date` column comparisons ---
 
 /** Create a Date at UTC midnight for year/month (0-indexed)/day */
-function utcDate(year: number, month: number, day: number): Date {
+export function utcDate(year: number, month: number, day: number): Date {
   return new Date(Date.UTC(year, month, day));
 }
 
@@ -22,7 +22,7 @@ function lastDayOfMonth(year: number, month: number): number {
  * This prevents the off-by-one bug where UTC midnight is still "yesterday"
  * in the user's local time.
  */
-function localParts(now: Date, timeZone: string): { year: number; month: number; day: number } {
+export function localParts(now: Date, timeZone: string): { year: number; month: number; day: number } {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone,
     year: "numeric",

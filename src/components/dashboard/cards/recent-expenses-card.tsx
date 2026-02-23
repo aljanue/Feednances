@@ -1,4 +1,4 @@
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { ReceiptText, ArrowUpRight, RefreshCcw } from "lucide-react";
 import type { RecentExpenseDTO } from "@/lib/dtos/dashboard";
 import { formatCurrency } from "@/lib/utils/formatters";
@@ -68,7 +68,8 @@ function CardHeader() {
 }
 
 function RecentExpenseRow({ expense }: { expense: RecentExpenseDTO }) {
-  const date = parseISO(expense.expenseDate);
+  const [y, m, d] = expense.expenseDate.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
 
   return (
     <TableRow key={expense.id} className="group transition-colors">
