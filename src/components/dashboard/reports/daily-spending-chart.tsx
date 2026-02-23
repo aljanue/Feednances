@@ -23,8 +23,6 @@ interface DailySpendingChartProps {
 }
 
 export default function DailySpendingChart({ data }: DailySpendingChartProps) {
-  const showLabels = data.length <= 16;
-
   return (
     <ChartContainer config={chartConfig} className="h-[clamp(200px,26vw,260px)] w-full">
       <ResponsiveContainer width="100%" height="100%">
@@ -45,7 +43,8 @@ export default function DailySpendingChart({ data }: DailySpendingChartProps) {
             tickLine={false}
             axisLine={false}
             tickMargin={8}
-            tick={showLabels ? { fill: "var(--muted-foreground)", fontSize: 11 } : false}
+            minTickGap={24}
+            tick={{ fill: "var(--muted-foreground)", fontSize: 10 }}
           />
           <Tooltip
             content={<ChartTooltipContent />}

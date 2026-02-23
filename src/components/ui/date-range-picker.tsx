@@ -18,12 +18,14 @@ interface DatePickerWithRangeProps {
   className?: string
   date?: DateRange
   onSelect?: (date: DateRange | undefined) => void
+  compact?: boolean
 }
 
 export function DatePickerWithRange({
   className,
   date,
   onSelect,
+  compact = false,
 }: DatePickerWithRangeProps) {
   return (
     <div className={cn("grid gap-2", className)}>
@@ -33,11 +35,14 @@ export function DatePickerWithRange({
             id="date"
             variant={"outline"}
             className={cn(
-              "w-[260px] justify-start text-left font-normal h-10 bg-background/50 border-muted/40 hover:bg-background/80",
+              "justify-start text-left font-normal",
+              compact
+                ? "h-8 text-xs px-3 w-auto min-w-[200px] border-border/50 bg-background/50"
+                : "w-[260px] h-10 bg-background/50 border-muted/40 hover:bg-background/80",
               !date && "text-muted-foreground"
             )}
           >
-            <CalendarIcon className="mr-2 size-4" />
+            <CalendarIcon className={cn("mr-2", compact ? "size-3.5" : "size-4")} />
             {date?.from ? (
               date.to ? (
                 <>

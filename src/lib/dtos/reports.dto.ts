@@ -63,6 +63,58 @@ export interface SpendingPaceDTO {
   dailyAverage: number;
 }
 
+// --- Chart date filter types ---
+
+/** Preset range identifiers for chart filters */
+export type ReportsPreset =
+  | "this-month"
+  | "last-month"
+  | "last-7"
+  | "last-30"
+  | "last-90"
+  | "this-year";
+
+export const REPORTS_PRESET_LABELS: Record<ReportsPreset, string> = {
+  "this-month": "This Month",
+  "last-month": "Last Month",
+  "last-7": "Last 7 Days",
+  "last-30": "Last 30 Days",
+  "last-90": "Last 90 Days",
+  "this-year": "This Year",
+};
+
+/** Input filter from URL search params */
+export interface ReportsChartFilter {
+  preset?: string;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+/** Resolved filter state returned to the client */
+export interface ReportsActiveChartFilter {
+  preset: ReportsPreset | "custom";
+  dateFrom: string;
+  dateTo: string;
+}
+
+/** Panel IDs that support independent chart date filtering */
+export type FilterablePanelId = "daily-spending" | "category-spending" | "top-expenses";
+
+/** URL param prefixes for each filterable panel */
+export const CHART_FILTER_PREFIXES: Record<FilterablePanelId, string> = {
+  "daily-spending": "ds",
+  "category-spending": "cs",
+  "top-expenses": "te",
+};
+
+/** Per-panel chart filter input */
+export type ReportsChartFilters = Partial<Record<FilterablePanelId, ReportsChartFilter>>;
+
+/** Per-panel resolved filter output */
+export type ReportsActiveChartFilters = Record<FilterablePanelId, ReportsActiveChartFilter>;
+
+// --- Main DTO ---
+
 export interface ReportsDTO {
   kpis: {
     monthlySpend: ReportKPI;
@@ -81,6 +133,7 @@ export interface ReportsDTO {
   topExpenses: TopExpenseItem[];
   recurringVsOneTime: RecurringVsOneTimePoint[];
   spendingPace: SpendingPaceDTO;
+  chartFilters: ReportsActiveChartFilters;
 }
 
 /** Panel identifiers for the layout customization system */
@@ -112,36 +165,43 @@ export const PANEL_LABELS: Record<ReportPanelId, { title: string; subtitle: stri
   "monthly-comparison": {
     title: "Monthly Comparison",
     subtitle: "This year vs last year",
-    tooltip: "Compara cuánto has gastado cada mes de este año frente al mismo mes del año pasado. Así puedes ver si estás gastando más o menos que antes.",
+    tooltip: "Compare how much you spent each month this year versus the same month last year, so you can see if your spending is trending higher or lower.",
   },
   "category-spending": {
     title: "Spending by Category",
-    subtitle: "Year to date",
-    tooltip: "Muestra cómo se reparten tus gastos del año entre las distintas categorías. Las secciones más grandes representan donde más dinero has gastado.",
+    subtitle: "Selected period",
+    tooltip: "Shows how your spending breaks down across categories for the selected period. Larger sections represent where you spent the most.",
   },
   "daily-spending": {
     title: "Daily Spending",
-    subtitle: "This month",
-    tooltip: "Visualiza cuánto gastas cada día del mes actual. Los picos indican días con gastos elevados, y los valles días con poco o ningún gasto.",
+    subtitle: "Selected period",
+    tooltip: "See how much you spend each day within the selected range. Peaks indicate high-spend days, and valleys show low or no spending.",
   },
   "subscription-costs": {
     title: "Subscription Costs",
     subtitle: "Active subscriptions ranked by cost",
-    tooltip: "Ordena tus suscripciones activas de mayor a menor coste mensual. Te ayuda a identificar cuáles te están costando más dinero al mes.",
+    tooltip: "Ranks your active subscriptions from highest to lowest monthly cost, helping you identify which ones cost you the most.",
   },
   "top-expenses": {
     title: "Top Expenses",
-    subtitle: "Most expensive transactions this month",
-    tooltip: "Lista los 5 gastos individuales más caros de este mes, con su categoría y fecha. Útil para identificar gastos puntuales importantes.",
+    subtitle: "Selected period",
+    tooltip: "Lists the 5 most expensive individual transactions for the selected period, including their category and date.",
   },
   "recurring-vs-onetime": {
     title: "Recurring vs One-Time",
     subtitle: "Monthly breakdown of expense types",
-    tooltip: "Separa tus gastos mensuales en recurrentes (que se repiten cada mes) y puntuales (gastos únicos). Te permite ver qué parte de tu presupuesto es fija.",
+    tooltip: "Breaks down your monthly expenses into recurring (fixed) costs and one-time purchases, so you can see how much of your budget is fixed.",
   },
   "spending-pace": {
     title: "Spending Pace",
     subtitle: "Projected spend vs last month",
-    tooltip: "Muestra a qué ritmo estás gastando este mes. El indicador proyecta cuánto gastarás a final de mes si sigues al mismo ritmo, y lo compara con el mes anterior.",
+    tooltip: "Shows your current spending pace this month. Projects how much you'll spend by month-end at the current rate, and compares it to last month.",
   },
 };
+
+/** IDs of panels that support chart date filtering */
+export const FILTERABLE_PANELS: FilterablePanelId[] = [
+  "daily-spending",
+  "category-spending",
+  "top-expenses",
+];

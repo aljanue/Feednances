@@ -7,6 +7,7 @@ import GraphCard from "@/components/dashboard/cards/graph-card";
 import NumberCard from "@/components/dashboard/cards/number-card";
 import RecentExpensesCard from "@/components/dashboard/cards/recent-expenses-card";
 import SubscriptionsCard from "@/components/dashboard/cards/subscriptions-card";
+import SectionCard from "@/components/shared/section-card";
 import { getDashboardData } from "@/lib/services/dashboard";
 
 export default async function HomePage() {
@@ -23,11 +24,11 @@ export default async function HomePage() {
   if (!dashboardData) {
     return (
       <section className="h-full w-full flex flex-col gap-4">
-        <div className="p-8 border border-solid border-muted bg-card rounded-lg">
+        <SectionCard padding="spacious">
           <p className="text-sm text-muted-foreground">
             Unable to load dashboard data.
           </p>
-        </div>
+        </SectionCard>
       </section>
     );
   }
@@ -36,24 +37,24 @@ export default async function HomePage() {
     <section className="h-full w-full flex flex-col gap-4">
       <div className="flex md:flex-row flex-col gap-4">
         <div className="flex-1 md:max-w-107 max-w-full flex flex-col gap-4">
-          <div className="p-8 border border-solid border-muted bg-card overflow-x-auto rounded-lg flex flex-col">
+          <SectionCard padding="spacious" className="overflow-x-auto flex flex-col">
             <NumberCard data={dashboardData.numberCard} />
-          </div>
-          <div className="p-8 border border-solid border-muted bg-card overflow-x-auto rounded-lg grow flex flex-col">
+          </SectionCard>
+          <SectionCard padding="spacious" className="overflow-x-auto grow flex flex-col">
             <AverageCard data={dashboardData.averageCard} />
-          </div>
+          </SectionCard>
         </div>
-        <div className="p-8 border border-solid border-muted bg-card overflow-x-auto rounded-lg flex-1 flex flex-col">
+        <SectionCard padding="spacious" className="overflow-x-auto flex-1 flex flex-col">
           <GraphCard dataByRange={dashboardData.graphCard} />
-        </div>
+        </SectionCard>
       </div>
       <div className="flex md:flex-row flex-col-reverse gap-4">
-        <div className="p-6 xl:min-w-84 lg:min-w-72 min-w-auto border border-solid border-muted bg-card overflow-x-auto rounded-lg md:max-w-sm max-w-full flex flex-col">
+        <SectionCard className="overflow-x-auto xl:min-w-84 lg:min-w-72 min-w-auto md:max-w-sm max-w-full flex flex-col">
           <SubscriptionsCard items={dashboardData.subscriptions} />
-        </div>
-        <div className="p-6 border border-solid border-muted bg-card overflow-x-auto rounded-lg flex-1 min-h-62 flex flex-col">
+        </SectionCard>
+        <SectionCard className="overflow-x-auto flex-1 min-h-62 flex flex-col">
           <RecentExpensesCard items={dashboardData.recentExpenses} />
-        </div>
+        </SectionCard>
       </div>
     </section>
   );

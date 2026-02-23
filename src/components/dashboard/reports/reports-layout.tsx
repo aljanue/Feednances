@@ -18,8 +18,8 @@ import {
   ChevronDown,
   Info,
 } from "lucide-react";
-import type { ReportsDTO, ReportPanelId, ReportPanelConfig } from "@/lib/dtos/reports.dto";
-import { ALL_PANEL_IDS, PANEL_LABELS } from "@/lib/dtos/reports.dto";
+import type { ReportsDTO, ReportPanelId, ReportPanelConfig, FilterablePanelId } from "@/lib/dtos/reports.dto";
+import { ALL_PANEL_IDS, PANEL_LABELS, FILTERABLE_PANELS } from "@/lib/dtos/reports.dto";
 import {
   Tooltip,
   TooltipContent,
@@ -34,6 +34,8 @@ import SubscriptionCostChart from "./subscription-cost-chart";
 import TopExpensesTable from "./top-expenses-table";
 import RecurringVsOneTimeChart from "./recurring-vs-onetime-chart";
 import SpendingPaceCard from "./spending-pace-card";
+import ChartDateFilter from "./chart-date-filter";
+import SectionCard from "@/components/shared/section-card";
 
 const STORAGE_KEY = "reports-panel-config";
 
@@ -393,9 +395,11 @@ function PanelCard({
 }) {
   const label = PANEL_LABELS[panelId];
   const empty = !hasData(data, panelId);
+  const isFilterable = (FILTERABLE_PANELS as readonly string[]).includes(panelId);
 
   return (
-    <div className="p-6 border border-solid border-muted bg-card rounded-lg flex flex-col gap-5 transition-all duration-300 hover:border-primary/20">
+    <SectionCard className="flex flex-col gap-4">
+      {/* Title row */}
       <div className="flex items-center justify-between">
         <div className="space-y-0.5">
           <div className="flex items-center gap-2">
@@ -416,6 +420,20 @@ function PanelCard({
         </div>
       </div>
 
+      {/* Filter row — separated from the title for breathing room */}
+      {isFilterable && (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-y-2 gap-x-3 pt-2 pb-1 border-t border-border/30">
+          <span className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-wider shrink-0 hidden sm:block">
+            Period
+          </span>
+          <ChartDateFilter
+            panelId={panelId as FilterablePanelId}
+            allFilters={data.chartFilters}
+          />
+        </div>
+      )}
+
+      {/* Content */}
       {empty ? (
         <div className="flex items-center justify-center py-12">
           <p className="text-sm text-muted-foreground italic">{EMPTY_MESSAGES[panelId]}</p>
@@ -423,6 +441,6 @@ function PanelCard({
       ) : (
         children
       )}
-    </div>
+    </SectionCard>
   );
 }

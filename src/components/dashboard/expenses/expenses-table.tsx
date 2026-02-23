@@ -18,6 +18,7 @@ import EmptyState from "@/components/dashboard/cards/empty-state";
 import ExpensesFilterBar from "./expenses-filter-bar";
 import ExpensesTablePagination from "./expenses-table-pagination";
 import ExpenseRow from "./expense-row";
+import SectionCard from "@/components/shared/section-card";
 
 import type {
   ExpenseRowDTO,
@@ -101,18 +102,18 @@ export default function ExpensesTable({
 
   if (isEmptyNoFilters) {
     return (
-      <div className="border border-solid border-muted bg-card rounded-lg p-6">
+      <SectionCard>
         <EmptyState
           title="No expenses yet"
           description="Start tracking your expenses by adding your first transaction."
           icon={ReceiptText}
         />
-      </div>
+      </SectionCard>
     );
   }
 
   return (
-    <div className="border border-solid border-muted bg-card/60 backdrop-blur-sm shadow-sm rounded-xl flex flex-col overflow-hidden">
+    <SectionCard padding="compact" className="flex flex-col overflow-hidden">
       {/* Header + Filters */}
       <div className="p-6 pb-2">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -220,7 +221,7 @@ export default function ExpensesTable({
         totalPages={totalPages}
         onPageChange={handlePageChange}
       />
-    </div>
+    </SectionCard>
   );
 }
 

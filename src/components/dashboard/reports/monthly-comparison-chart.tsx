@@ -37,13 +37,14 @@ export default function MonthlyComparisonChart({ data }: MonthlyComparisonChartP
             tickLine={false}
             axisLine={false}
             tickMargin={8}
-            tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
+            minTickGap={16}
+            tick={{ fill: "var(--muted-foreground)", fontSize: 10 }}
           />
           <YAxis
             tickLine={false}
             axisLine={false}
             tickMargin={8}
-            tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
+            tick={{ fill: "var(--muted-foreground)", fontSize: 10 }}
           />
           <Tooltip
             content={<ChartTooltipContent indicator="line" />}
@@ -54,7 +55,15 @@ export default function MonthlyComparisonChart({ data }: MonthlyComparisonChartP
             align="right"
             iconType="circle"
             iconSize={8}
-            wrapperStyle={{ fontSize: 12, color: "var(--muted-foreground)", paddingBottom: 8 }}
+            wrapperStyle={{
+              fontSize: 11,
+              color: "var(--muted-foreground)",
+              paddingBottom: 8,
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "flex-end",
+              gap: "4px"
+            }}
           />
           <Bar
             dataKey="previous"
