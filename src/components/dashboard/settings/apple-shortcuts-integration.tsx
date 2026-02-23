@@ -59,7 +59,7 @@ export default function AppleShortcutsIntegration({ user }: Props) {
     <div className="space-y-4">
       <div className="flex items-center justify-between ml-14">
         <div className="flex items-center gap-4 -ml-14">
-          <div className="h-10 w-10 rounded-full flex items-center justify-center bg-blue-500/10 text-blue-500">
+          <div className="h-10 w-10 rounded-full flex items-center justify-center md:bg-blue-500/10 text-blue-500 bg-transparent">
             <Sparkles className="h-5 w-5" />
           </div>
           <div>

@@ -65,8 +65,8 @@ export default function TelegramIntegration({ user }: Props) {
     <div className="space-y-4">
       <div className="flex items-center justify-between ml-14">
         <div className="flex items-center gap-4 -ml-14">
-          <div className="h-10 w-10 rounded-full flex items-center justify-center bg-[#0088cc]/10 text-[#0088cc]">
-            <Bot className="h-5 w-5" />
+          <div className="h-10 w-10 rounded-full flex items-center justify-center md:bg-[#0088cc]/10 text-[#0088cc] bg-transparent">
+            <Bot className="h-6 w-6" />
           </div>
           <div>
             <h4 className="text-md font-medium flex items-center gap-2">

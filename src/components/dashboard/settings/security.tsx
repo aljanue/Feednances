@@ -80,11 +80,11 @@ export default function Security({ user }: Props) {
       <div className="space-y-6">
         <div className="flex items-center justify-between pb-4 border-b">
           <div className="flex items-center gap-4">
-            <div className={`h-16 w-16 rounded-full flex items-center justify-center ${user.hasPassword ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'}`}>
-              {user.hasPassword ? <ShieldCheck className="h-8 w-8" /> : <ShieldAlert className="h-8 w-8" />}
+            <div className={`h-10 w-10 rounded-full flex items-center justify-center ${user.hasPassword ? 'md:bg-emerald-500/10 text-emerald-500' : 'md:bg-amber-500/10 text-amber-500'} bg-transparent`}>
+              {user.hasPassword ? <ShieldCheck className="h-6 w-6" /> : <ShieldAlert className="h-6 w-6" />}
             </div>
             <div>
-              <h3 className="text-lg font-medium">Password Settings</h3>
+              <h3 className="font-medium">Password Settings</h3>
               <p className="text-sm text-muted-foreground">
                 {user.hasPassword 
                   ? "Update your password to keep your account secure." 
