@@ -4,6 +4,7 @@ import { useActionState, useState, useMemo } from "react";
 import { registerUser } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
@@ -100,10 +101,9 @@ export function RegisterForm() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
-            <Input 
+            <PasswordInput 
               id="password" 
               name="password" 
-              type="password" 
               required 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -134,10 +134,9 @@ export function RegisterForm() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">Repeat Password</Label>
-            <Input 
+            <PasswordInput 
               id="confirmPassword" 
               name="confirmPassword" 
-              type="password" 
               required 
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
