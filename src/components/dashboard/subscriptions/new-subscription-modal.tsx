@@ -132,7 +132,8 @@ export default function NewSubscriptionModal({
       today.setHours(0, 0, 0, 0);
       selectedDate.setHours(0, 0, 0, 0);
 
-      if (selectedDate < today) {
+      // Treat today as a past date to allow instant creation + scheduling
+      if (selectedDate <= today) {
         setPendingFormData(formData);
         setShowPastDateAlert(true);
         return;
@@ -281,13 +282,13 @@ export default function NewSubscriptionModal({
           <AlertDialogHeader>
             <AlertDialogTitle>You selected a past date</AlertDialogTitle>
             <AlertDialogDescription className="space-y-3">
-              <p>
+              <span>
                 We noticed the start date for this subscription is in the past. 
                 We will automatically calculate your next billing cycle based on this date.
-              </p>
-              <p>
+              </span>
+              <span>
                 <strong>Would you like us to also record expenses for all past billing cycles since that date?</strong>
-              </p>
+              </span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-col sm:flex-row gap-2 mt-4 sm:justify-end">

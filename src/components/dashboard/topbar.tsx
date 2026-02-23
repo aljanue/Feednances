@@ -1,7 +1,6 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import NotificationsMenu from "./notifications-menu";
 import NewExpenseModal from "./new-expense-modal";
 import MobileNav from "./mobile-nav";
 
@@ -33,7 +32,6 @@ export default function DashboardTopbar({
         <h1 className="text-lg sm:text-xl font-semibold">{matchedTitle}</h1>
       </div>
       <div className="flex items-center gap-2 sm:gap-4">
-        <NotificationsMenu />
         <div className="hidden sm:flex items-center gap-2">
           <div className="h-6 w-px bg-muted-foreground/20 mx-1" />
         </div>

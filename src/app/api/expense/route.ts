@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createExpense } from "@/lib/data/expenses.queries";
-import { createNotificationForUser } from "@/lib/services/notifications";
 import { formatAmount } from "@/utils/format-data.utils";
 import { validateRequest } from "@/utils/user.utils";
 
@@ -49,31 +48,12 @@ export async function POST(req: NextRequest) {
       isRecurring: body.isRecurring || false,
     });
 
-    try {
-      await createNotificationForUser(user.id, {
-        text: `Expense created: ${body.concept}`,
-        type: "success",
-      });
-    } catch {
-    }
-
     return NextResponse.json(
       { success: true, message: "Expense saved" },
       { status: 201 },
     );
   } catch (error) {
     console.error("Error saving expense:", error);
-
-    if (userId) {
-      try {
-        await createNotificationForUser(userId, {
-          text: "Expense creation failed.",
-          type: "error",
-        });
-      } catch {
-        // Ignore notification failures.
-      }
-    }
 
     return NextResponse.json(
       { error: "Internal server error" },

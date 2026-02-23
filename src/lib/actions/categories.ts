@@ -12,7 +12,6 @@ import {
   updateCategory,
 } from "@/lib/data/categories.queries";
 import { createCategorySchema } from "@/lib/validations/category";
-import { createNotificationForUser } from "@/lib/services/notifications";
 
 export interface CategoryActionState {
   success?: boolean;
@@ -56,11 +55,6 @@ export async function createCategoryAction(
       active: true,
     });
 
-    await createNotificationForUser(session.user.id, {
-      text: `Category created: ${validated.data.name}`,
-      type: "success",
-    });
-
     revalidatePath("/dashboard/categories");
     return { success: true };
   } catch (error) {
@@ -94,11 +88,6 @@ export async function updateCategoryAction(
       hexColor: validated.data.hexColor ?? null,
     });
 
-    await createNotificationForUser(session.user.id, {
-      text: `Category updated: ${validated.data.name}`,
-      type: "info",
-    });
-
     revalidatePath("/dashboard/categories");
     return { success: true };
   } catch (error) {
@@ -121,19 +110,9 @@ export async function deleteCategoryAction(id: string): Promise<CategoryActionSt
     }
 
     if (category.userId === null) {
-
       await hideCategory(session.user.id, id, true);
-      await createNotificationForUser(session.user.id, {
-        text: `Category deleted: ${category.name}`,
-        type: "warning",
-      });
     } else if (category.userId === session.user.id) {
-
       await deleteCategory(id);
-      await createNotificationForUser(session.user.id, {
-        text: `Category deleted: ${category.name}`,
-        type: "warning",
-      });
     } else {
       return { error: "Unauthorized" };
     }
@@ -176,11 +155,6 @@ export async function toggleCategoryAction(
 
         await updateCategory(id, { active: isActive });
     }
-    
-    await createNotificationForUser(session.user.id, {
-        text: `Category ${isActive ? 'enabled' : 'disabled'}: ${category.name}`,
-        type: "info",
-    });
 
     revalidatePath("/dashboard/categories");
     return { success: true };

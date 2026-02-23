@@ -3,19 +3,15 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { deleteSubscription, toggleSubscriptionStatus, createSubscriptionWithTransaction } from "@/lib/data/subscriptions.queries";
-import { createNotificationForUser } from "@/lib/services/notifications";
 import { validateSubscriptionForm } from "@/lib/validations/subscription";
 import { formatAmount } from "@/utils/format-data.utils";
 import { calculateFutureNextRuns } from "@/utils/subscriptions.utils";
 import { getTimeUnitById } from "@/lib/data/time-units.queries";
-import type { NotificationItemDTO } from "@/lib/dtos/notifications";
-
 export interface SubscriptionActionState {
   success?: boolean;
   error?: string;
   fieldErrors?: Record<string, string>;
   actionId?: number;
-  notification?: NotificationItemDTO;
 }
 
 export async function createSubscriptionAction(
@@ -68,7 +64,7 @@ export async function createSubscriptionAction(
     let nextRun = startsAtNormalized;
     let initialExpenses: any[] = [];
 
-    if (startsAtNormalized < nowNormalized) {
+    if (startsAtNormalized <= nowNormalized) {
       const { nextRun: computedNextRun, pastRuns } = calculateFutureNextRuns(parsedFrequency, dbTimeUnit.value, startsAtNormalized);
       nextRun = computedNextRun;
       
@@ -100,30 +96,15 @@ export async function createSubscriptionAction(
       initialExpenses
     );
 
-    const notification = await createNotificationForUser(session.user.id, {
-      text: `Subscription created: ${name}`,
-      type: "success",
-    });
-
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/subscriptions");
 
-    return { success: true, actionId: Date.now(), notification };
+    return { success: true, actionId: Date.now() };
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Unable to create subscription.";
 
-    let notification: NotificationItemDTO | undefined;
-    try {
-      notification = await createNotificationForUser(session.user.id, {
-        text: "Subscription creation failed.",
-        type: "error",
-      });
-    } catch {
-      notification = undefined;
-    }
-
-    return { error: message, actionId: Date.now(), notification };
+    return { error: message, actionId: Date.now() };
   }
 }
 
@@ -139,11 +120,6 @@ export async function deleteSubscriptionAction(id: string): Promise<Subscription
     if (!deleted || deleted.length === 0) {
       return { error: "Subscription not found or not authorized to delete" };
     }
-
-    await createNotificationForUser(session.user.id, {
-      text: `Subscription deleted: ${deleted[0].name}`,
-      type: "warning",
-    });
 
     revalidatePath("/dashboard/subscriptions");
     return { success: true };
@@ -168,11 +144,6 @@ export async function toggleSubscriptionAction(
     if (!updated || updated.length === 0) {
        return { error: "Subscription not found or not authorized to update" };
     }
-
-    await createNotificationForUser(session.user.id, {
-      text: `Subscription ${isActive ? 'enabled' : 'disabled'}: ${updated[0].name}`,
-      type: "info",
-    });
 
     revalidatePath("/dashboard/subscriptions");
     return { success: true };

@@ -22,10 +22,6 @@ import { Label } from "../ui/label";
 
 import { createExpenseAction } from "@/lib/actions/expenses";
 import { getCategoriesAction } from "@/lib/actions/categories";
-import type {
-  NotificationItemDTO,
-  NotificationsResponseDTO,
-} from "@/lib/dtos/notifications";
 import { NotificationToast } from "@/components/shared/notification-toast";
 import { FormCategorySelect } from "@/components/dashboard/shared/form-category-select";
 import { FormDatePicker } from "@/components/dashboard/shared/form-date-picker";
@@ -50,26 +46,6 @@ export default function NewExpenseModal() {
     }
   }, [open]);
 
-  const updateNotificationsCache = (newNotification: NotificationItemDTO) => {
-    mutate(
-      "/api/user/me",
-      (
-        current: NotificationsResponseDTO | undefined,
-      ): NotificationsResponseDTO | undefined => {
-        if (!current) return undefined;
-        return {
-          ...current,
-          unreadCount: (current.unreadCount || 0) + 1,
-          latestNotifications: [
-            newNotification,
-            ...current.latestNotifications,
-          ].slice(0, 10),
-        };
-      },
-      { revalidate: false },
-    );
-  };
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -86,10 +62,6 @@ export default function NewExpenseModal() {
             type="success"
           />
         ));
-
-        if (result.notification) {
-          updateNotificationsCache(result.notification);
-        }
 
         setOpen(false);
         setDate(undefined);

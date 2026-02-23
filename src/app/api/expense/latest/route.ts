@@ -6,7 +6,6 @@ import {
   deleteExpense,
 } from "@/lib/data/expenses.queries";
 import { getUserById } from "@/lib/data/users.queries";
-import { createNotificationForUser } from "@/lib/services/notifications";
 import { validateRequest } from "@/utils/user.utils";
 
 export async function DELETE(req: NextRequest) {
@@ -34,14 +33,7 @@ export async function DELETE(req: NextRequest) {
 
     await deleteExpense(lastExpense.id);
 
-    try {
-      await createNotificationForUser(user.id, {
-        text: `Expense deleted: ${lastExpense.concept}`,
-        type: "warning",
-      });
-    } catch {
-      // Notification failures should not block the request.
-    }
+    await deleteExpense(lastExpense.id);
 
     revalidatePath("/dashboard");
 
@@ -51,17 +43,6 @@ export async function DELETE(req: NextRequest) {
     });
   } catch (error) {
     console.error("Delete error:", error);
-
-    if (userId) {
-      try {
-        await createNotificationForUser(userId, {
-          text: "Expense deletion failed.",
-          type: "error",
-        });
-      } catch {
-        // Ignore notification failures.
-      }
-    }
 
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
