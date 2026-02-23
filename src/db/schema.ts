@@ -31,6 +31,8 @@ export const users = pgTable("user", {
   password: text("password"),
   deleted: boolean("deleted").default(false),
   firstLogin: boolean("first_login").default(true).notNull(),
+  currency: text("currency").default("EUR").notNull(),
+  timeZone: text("time_zone").default("UTC").notNull(),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   telegramChatId: text("telegram_chat_id"),
 });
