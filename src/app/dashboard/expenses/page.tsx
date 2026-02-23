@@ -7,6 +7,7 @@ import ExpensesTable from "@/components/dashboard/expenses/expenses-table";
 import MainSection from "@/components/dashboard/main-section";
 import TitleHeader from "@/components/dashboard/title-header";
 import NewExpenseModal from "@/components/dashboard/new-expense-modal";
+import { ReceiptText } from "lucide-react";
 import { getExpensesPageData } from "@/lib/services/expenses";
 import type { ExpenseSortField, SortDirection } from "@/lib/dtos/expenses.dto";
 
@@ -59,6 +60,7 @@ export default async function ExpensesPage({ searchParams }: ExpensesPageProps) 
         <TitleHeader
           title="Expenses"
           description="Real-time audit log and historical expenditure tracking."
+          icon={<ReceiptText />}
         />
         <NewExpenseModal />
       </div>

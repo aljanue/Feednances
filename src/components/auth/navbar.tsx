@@ -16,7 +16,7 @@ export default function NavBar({ isLogin = false }: NavBarProps) {
         <span className="text-sm text-muted-foreground font-medium sm:block hidden">
           {isLogin ? "New to Feednances?" : "Already have an account?"}
         </span>
-        <Button variant="outline" className="font-bold glow-primary" asChild>
+        <Button variant="outline" className="font-semibold glow-primary" asChild>
           <Link href={isLogin ? "/register" : "/login"}>
             {isLogin ? "Create Account" : "Login"}
           </Link>

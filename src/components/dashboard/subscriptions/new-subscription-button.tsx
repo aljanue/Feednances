@@ -10,7 +10,7 @@ export function NewSubscriptionButton() {
 
   return (
     <>
-      <Button className="font-bold shrink-0" onClick={() => setOpen(true)}>
+      <Button className="font-semibold shrink-0" onClick={() => setOpen(true)}>
         New Subscription
       </Button>
       <NewSubscriptionModal open={open} onOpenChange={setOpen} />

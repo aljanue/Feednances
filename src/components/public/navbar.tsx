@@ -33,7 +33,7 @@ export default async function NavBar() {
       <div className="hidden md:flex items-center gap-4 text-sm">
         {user ? (
           <div className="flex items-center gap-4">
-            <Button className="font-bold text-sm glow-primary" asChild>
+            <Button className="font-semibold text-sm glow-primary" asChild>
               <Link href="/dashboard">Dashboard</Link>
             </Button>
             <div className="h-6 w-px bg-muted-foreground/20 mx-1" />
@@ -51,7 +51,7 @@ export default async function NavBar() {
             >
               Login
             </Link>
-            <Button className="font-bold text-sm glow-primary" asChild>
+              <Button className="font-semibold text-sm glow-primary" asChild>
               <Link href="/register">Get Started</Link>
             </Button>
           </>

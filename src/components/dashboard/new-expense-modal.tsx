@@ -85,7 +85,7 @@ export default function NewExpenseModal() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="font-bold">New Expense</Button>
+        <Button className="font-semibold">New Expense</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-106.25">
         <DialogHeader>

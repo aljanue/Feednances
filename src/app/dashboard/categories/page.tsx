@@ -6,6 +6,7 @@ import { NewCategoryButton } from "@/components/dashboard/categories/new-categor
 import { Metadata } from "next";
 import TitleHeader from "@/components/dashboard/title-header";
 import MainSection from "@/components/dashboard/main-section";
+import { Tags } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Categories | Fiscal Flow",
@@ -24,7 +25,11 @@ export default async function CategoriesPage() {
   return (
     <MainSection>
       <div className="flex items-center justify-between gap-4">
-        <TitleHeader title="Categories" description="Manage your expense categories. Default categories cannot be modified." />
+        <TitleHeader
+          title="Categories"
+          description="Manage your expense categories. Default categories cannot be modified."
+          icon={<Tags />}
+        />
         <NewCategoryButton />
       </div>
 

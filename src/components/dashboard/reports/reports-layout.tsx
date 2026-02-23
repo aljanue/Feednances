@@ -2,8 +2,9 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import {
-  BarChart3,
   PieChart,
+  LineChart,
+  BarChart3,
   TrendingUp,
   CreditCard,
   Receipt,
@@ -265,7 +266,7 @@ export default function ReportsLayout({ data }: ReportsLayoutProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-xl bg-primary/10">
-              <BarChart3 className="h-5 w-5 text-primary" />
+              <LineChart className="h-5 w-5 text-primary" />
             </div>
             <div>
               <h1 className="text-2xl font-bold tracking-tight">Reports</h1>

@@ -9,7 +9,7 @@ export function NewCategoryButton() {
 
   return (
     <>
-      <Button className="font-bold" onClick={() => setOpen(true)}>
+      <Button className="font-semibold" onClick={() => setOpen(true)}>
         Add Category
       </Button>
       <CategoryDialog open={open} onOpenChange={setOpen} category={null} />
