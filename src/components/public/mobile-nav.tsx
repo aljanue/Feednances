@@ -12,9 +12,11 @@ interface MobileNavProps {
 }
 
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { usePathname } from "next/navigation";
 
 export default function MobileNav({ user }: MobileNavProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
     <div className="md:hidden">
@@ -61,10 +63,13 @@ export default function MobileNav({ user }: MobileNavProps) {
             <Link
               href="/"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground font-medium hover:bg-primary/10 transition-colors"
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${pathname === "/"
+                  ? "bg-primary/10 text-foreground"
+                  : "text-muted-foreground hover:bg-primary/10 hover:text-foreground"
+                }`}
             >
               <svg
-                className="w-5 h-5 text-primary"
+                className={`w-5 h-5 ${pathname === "/" ? "text-primary" : ""}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -79,12 +84,15 @@ export default function MobileNav({ user }: MobileNavProps) {
               Home
             </Link>
             <Link
-              href="#features"
+              href="/about"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground font-medium hover:bg-primary/10 hover:text-foreground transition-colors"
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${pathname === "/about"
+                  ? "bg-primary/10 text-foreground"
+                  : "text-muted-foreground hover:bg-primary/10 hover:text-foreground"
+                }`}
             >
               <svg
-                className="w-5 h-5"
+                className={`w-5 h-5 ${pathname === "/about" ? "text-primary" : ""}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -93,30 +101,10 @@ export default function MobileNav({ user }: MobileNavProps) {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              Features
-            </Link>
-            <Link
-              href="#installation"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground font-medium hover:bg-primary/10 hover:text-foreground transition-colors"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                />
-              </svg>
-              Installation
+              About
             </Link>
           </nav>
 

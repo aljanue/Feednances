@@ -5,6 +5,7 @@ import MobileNav from "./mobile-nav";
 import { auth } from "@/auth";
 import { getUserById } from "@/lib/data/users.queries";
 import UserMenuItem from "../dashboard/user-menu-item";
+import DesktopNav from "./desktop-nav";
 
 export default async function NavBar() {
   const session = await auth();
@@ -17,17 +18,7 @@ export default async function NavBar() {
       </Link>
 
       {/* Desktop Navigation */}
-      <ul className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
-        <li className="nav-link active cursor-pointer text-foreground hover:text-primary transition-colors">
-          Home
-        </li>
-        <li className="nav-link cursor-pointer hover:text-foreground transition-colors">
-          Features
-        </li>
-        <li className="nav-link cursor-pointer hover:text-foreground transition-colors">
-          Installation
-        </li>
-      </ul>
+      <DesktopNav />
 
       {/* Desktop Auth */}
       <div className="hidden md:flex items-center gap-4 text-sm">
@@ -48,11 +39,11 @@ export default async function NavBar() {
           <>
             <Link
               href="/login"
-              className="nav-link text-sm cursor-pointer text-muted-foreground font-medium hover:text-foreground transition-colors"
+                className="nav-link text-sm cursor-default text-muted-foreground font-medium hover:text-foreground transition-colors"
             >
               Login
             </Link>
-              <Button className="font-semibold text-sm glow-primary" asChild>
+              <Button className="font-semibold text-sm glow-primary cursor-default" asChild>
               <Link href="/register">Get Started</Link>
             </Button>
           </>

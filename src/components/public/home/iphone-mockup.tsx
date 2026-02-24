@@ -9,13 +9,10 @@ interface IPhoneMockupProps {
 export default function IPhoneMockup({ className }: IPhoneMockupProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [notificationVisible, setNotificationVisible] = useState(false);
-  const [glowPosition, setGlowPosition] = useState({ x: 50, y: 50 });
   const [isHovering, setIsHovering] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-
     const timer1 = setTimeout(() => setIsVisible(true), 100);
     const timer2 = setTimeout(() => setNotificationVisible(true), 800);
     return () => {
@@ -42,158 +39,83 @@ export default function IPhoneMockup({ className }: IPhoneMockupProps) {
     return `${weekday}, ${month} ${day}`;
   };
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current || window.innerWidth < 768) return;
-    
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    
-    setGlowPosition({ x, y });
-  };
-
-
-  const getGlowColor = () => {
-    const { x, y } = glowPosition;
-
-    const hue = 142 + (x - 50) * 0.8 + (y - 50) * 1.5;
-    return `hsl(${hue}, 80%, 55%)`;
-  };
-
-  const glowColor = getGlowColor();
-
-  const handleMouseEnter = () => {
-    if (window.innerWidth < 768) return;
-    setIsHovering(true);
-  };
-  const handleMouseLeave = () => {
-    if (window.innerWidth < 768) return;
-    setIsHovering(false);
-
-    setGlowPosition({ x: 50, y: 50 });
-  };
-
   return (
     <div 
-      ref={containerRef}
       className={`relative shrink-0 ${className ?? ""}`}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
     >
-
+      {/* Background glow effect */}
       <div 
-        className={`absolute w-48 h-48 blur-[60px] rounded-full transition-all duration-700 ease-out pointer-events-none ${
+        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 blur-[80px] rounded-full transition-all duration-1000 ease-out pointer-events-none ${
           isVisible ? "opacity-100" : "opacity-0"
-        } ${isHovering ? "scale-110" : "scale-100"}`}
-        style={{
-          left: `${glowPosition.x}%`,
-          top: `${glowPosition.y}%`,
-          transform: `translate(-50%, -50%)`,
-          backgroundColor: isHovering ? glowColor : "rgb(43, 238, 108, 0.25)",
-          opacity: isVisible ? 0.4 : 0,
-        }}
+          } ${isHovering ? "scale-110 bg-primary/30" : "scale-100 bg-primary/10"}`}
       />
-      
 
+      {/* The Phone Container */}
       <div 
-        className={`absolute w-64 h-64 blur-[70px] rounded-full transition-all duration-1000 ease-out pointer-events-none ${
-          isVisible ? "opacity-100" : "opacity-0"
-        }`}
-        style={{
-          left: `${50 + (glowPosition.x - 50) * 0.5}%`,
-          top: `${50 + (glowPosition.y - 50) * 0.5}%`,
-          transform: `translate(-50%, -50%)`,
-          backgroundColor: isHovering ? glowColor : "rgb(43, 238, 108, 0.1)",
-          opacity: isVisible ? 0.2 : 0,
-        }}
-      />
-      
-
-      <div 
-        className={`relative w-50 md:w-60 lg:w-70 transition-all duration-700 ease-out ${
+        className={`relative w-50 md:w-60 lg:w-70 transition-all duration-700 ease-out z-10 ${
           isVisible 
             ? "opacity-100 translate-y-0 rotate-0" 
-            : "opacity-0 translate-y-8 rotate-3"
+          : "opacity-0 translate-y-8 rotate-6"
         }`}
       >
+        <div className="relative backdrop-blur-md border border-white/10 rounded-[3rem] p-2 shadow-2xl bg-black">
+          {/* Inner Screen */}
+          <div className="relative bg-[#0a0a0a] rounded-[2.25rem] overflow-hidden border border-white/5 aspect-[9/19.5]">
 
-        <div className="relative backdrop-blur-md border-[3px] border-white/50 rounded-[3rem] p-2 shadow-2xl shadow-black/30">
-          
-
-          <div className="relative bg-black/20 backdrop-blur-xl rounded-[2.25rem] overflow-visible aspect-[9/19.5]">
-
-            <div className="absolute top-3 left-1/2 -translate-x-1/2 w-24 h-7 bg-black rounded-full z-10 flex items-center justify-center gap-2">
-              <div className="w-2 h-2 bg-white/10 rounded-full animate-pulse" />
-              <div className="w-3 h-3 bg-white/5 rounded-full border border-white/10" />
+            {/* Dynamic Island */}
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 w-24 h-7 bg-black rounded-full z-10 flex items-center justify-center gap-2 border border-white/5">
+              <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+              <div className="w-2.5 h-2.5 bg-white/10 rounded-full" />
             </div>
-            
 
+            {/* Lock Screen Time */}
             <div className="absolute top-16 left-1/2 -translate-x-1/2 text-center z-10 w-full px-4">
-              <div className="text-[11px] text-white/70 font-medium tracking-wide mb-1">
+              <div className="text-[11px] text-white/50 font-medium tracking-wide mb-1">
                 {formatDay(currentTime)}
               </div>
-              <div className="text-5xl font-semibold text-white tracking-tight tabular-nums">
+              <div className="text-5xl font-semibold text-white/90 tracking-tight tabular-nums">
                 {formatTime(currentTime)}
               </div>
             </div>
-            
 
-            <div className="absolute inset-0 flex items-center justify-center overflow-visible">
-
+            {/* Notification Card */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div 
-                className={`w-[250%] transition-all duration-500 ease-out ${
+                className={`w-[90%] transition-all duration-700 ease-out ${
                   notificationVisible 
                     ? "opacity-100 translate-y-0 scale-100" 
                     : "opacity-0 -translate-y-4 scale-95"
                 }`}
               >
-                <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-2xl p-4 shadow-2xl shadow-black/20 animate-pulse animation-duration-[3s]">
-                  <div className="flex items-center justify-between mb-2">
+                <div className="bg-black/80 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 shadow-2xl shadow-black/40">
+                  <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-white/90">Feednances</span>
+                      <span className="text-xs font-semibold text-white/90">Feednances</span>
                     </div>
                     <span className="text-[10px] text-white/40">now</span>
                   </div>
-                  <div className="text-sm font-medium text-white">
-                    ✅ Expense Saved: Netflix
+                  <div className="text-sm font-medium text-white/90 mb-1">
+                    Expense saved successfully
                   </div>
-                  <div className="text-xs text-primary font-bold mt-0.5">
-                    -$17.99 (Subscription)
+                  <div className="text-xs font-semibold text-primary/80">
+                    -17.99€ added to Entertainment
                   </div>
                 </div>
               </div>
             </div>
-            
 
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-white/30 rounded-full" />
+            {/* Home Indicator */}
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-white/20 rounded-full" />
           </div>
-          
 
-          <div className="absolute top-24 -left-1.25 w-0.75 h-8 bg-white/30 rounded-l-full" />
-          <div className="absolute top-36 -left-1.25 w-0.75 h-14 bg-white/30 rounded-l-full" />
-          <div className="absolute top-52 -left-1.25 w-0.75 h-14 bg-white/30 rounded-l-full" />
-          <div className="absolute top-32 -right-1.25 w-0.75 h-16 bg-white/30 rounded-r-full" />
+          {/* Side Buttons */}
+          <div className="absolute top-24 -left-1 w-1 h-8 bg-white/20 rounded-l-full" />
+          <div className="absolute top-36 -left-1 w-1 h-14 bg-white/20 rounded-l-full" />
+          <div className="absolute top-52 -left-1 w-1 h-14 bg-white/20 rounded-l-full" />
+          <div className="absolute top-32 -right-1 w-1 h-16 bg-white/20 rounded-r-full" />
         </div>
-      </div>
-      
-
-      <div 
-        className={`absolute -bottom-1 -left-2 -translate-x-1/2 md:-bottom-4 md:-left-65 md:translate-x-0 bg-card/80 backdrop-blur-md border border-border/50 p-3 md:p-4 rounded-xl hidden sm:block transition-all duration-500 delay-500 ${
-          isVisible 
-            ? "opacity-100 translate-x-0" 
-            : "opacity-0 translate-x-4"
-        }`}
-      >
-        <div className="flex items-center gap-3 text-xs font-mono text-primary">
-          <span className="text-muted-foreground">POST</span> /api/expense
-        </div>
-        <div className="mt-2 text-[10px] font-mono text-muted-foreground">
-          {"{"} &quot;amount&quot;: 17.99, &quot;concept&quot;: &quot;Netflix&quot;, &quot;category&quot;: &quot;Entertaiment&quot;, ... {"}"}
-        </div>
-        
-
-        <span className="inline-block w-1.5 h-3 bg-primary/70 ml-1 animate-[blink_1s_steps(1)_infinite]" />
       </div>
     </div>
   );

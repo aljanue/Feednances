@@ -9,7 +9,7 @@ import MainSection from "@/components/dashboard/main-section";
 import { Tags } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Categories | Fiscal Flow",
+  title: "Categories | Feednances",
   description: "Manage your expense categories",
 };
 
