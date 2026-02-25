@@ -10,6 +10,7 @@ import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { calculateNextRun } from "@/utils/subscriptions.utils";
+import { getTimeUnitById } from "@/lib/data/time-units.queries";
 
 export async function POST(req: NextRequest) {
   let userId: string | undefined;
@@ -48,7 +49,7 @@ export async function POST(req: NextRequest) {
 
     userId = user.id;
 
-    const timeUnit = await getTimeUnitByValue(body.periodType);
+    const timeUnit = await getTimeUnitById(body.periodType);
 
     if (!timeUnit) {
       return NextResponse.json(
