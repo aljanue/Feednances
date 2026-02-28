@@ -142,7 +142,7 @@ export default function AppleShortcutsIntegration({ user }: Props) {
           <div className="flex items-center gap-2 pt-2">
             <Button variant="secondary" className="w-fit" asChild>
               <a
-                href="https://www.icloud.com/shortcuts/e7560ae3d4804005bab592f33a4b1d31"
+                href="https://www.icloud.com/shortcuts/2e432724d9b442e5aec976c906e76ade"
                 target="_blank"
                 rel="noopener noreferrer"
               >
