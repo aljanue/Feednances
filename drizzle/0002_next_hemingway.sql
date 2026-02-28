@@ -1,0 +1,1 @@
+ALTER TABLE "shortcuts" DROP COLUMN "test_col";

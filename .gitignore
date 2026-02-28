@@ -40,4 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-drizzle/
+# drizzle migrations
+drizzle_backup/
+# drizzle/ <- removed from ignore to allow tracking migrations

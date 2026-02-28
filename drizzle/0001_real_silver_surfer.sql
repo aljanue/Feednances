@@ -1,0 +1,1 @@
+ALTER TABLE "shortcuts" ADD COLUMN "test_col" text;
