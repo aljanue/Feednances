@@ -7,6 +7,7 @@ import { formatCurrency } from "@/lib/utils/formatters";
 import PercentageChangeBadge from "@/components/shared/percentage-change-badge";
 import MetricCard from "@/components/shared/metric-card";
 import { cn } from "@/lib/utils";
+import { useUserPreferences } from "@/components/dashboard/user-preferences-provider";
 
 interface ExpensesDataSummaryProps {
   summary: ExpensesSummaryDTO;
@@ -58,6 +59,7 @@ const metrics = [
 export default function ExpensesDataSummary({
   summary,
 }: ExpensesDataSummaryProps) {
+  const { currency } = useUserPreferences();
   const [expanded, setExpanded] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const [contentHeight, setContentHeight] = useState(0);
@@ -79,6 +81,7 @@ export default function ExpensesDataSummary({
             key={metric.key}
             summary={summary}
             metric={metric}
+            currency={currency}
           />
         ))}
       </div>
@@ -88,6 +91,7 @@ export default function ExpensesDataSummary({
         <SummaryMetric
           summary={summary}
           metric={firstMetric}
+          currency={currency}
         />
 
         {/* Animated collapsible container */}
@@ -104,6 +108,7 @@ export default function ExpensesDataSummary({
                 key={metric.key}
                 summary={summary}
                 metric={metric}
+                currency={currency}
               />
             ))}
           </div>
@@ -131,14 +136,16 @@ export default function ExpensesDataSummary({
 function SummaryMetric({
   summary,
   metric,
+  currency,
 }: {
   summary: ExpensesSummaryDTO;
   metric: (typeof metrics)[number];
+    currency: string;
 }) {
   const { key, changeKey, diffKey, label, changeLabel, description, icon, isCurrency } = metric;
 
   const displayValue = isCurrency
-    ? formatCurrency(summary[key])
+    ? formatCurrency(summary[key], currency)
     : summary[key].toLocaleString();
 
   return (

@@ -26,6 +26,7 @@ import { formatCurrency } from "@/lib/utils/formatters";
 import { deleteExpenseAction } from "@/lib/actions/expenses";
 import type { ExpenseRowDTO } from "@/lib/dtos/expenses.dto";
 import EditExpenseModal from "./edit-expense-modal";
+import { useUserPreferences } from "@/components/dashboard/user-preferences-provider";
 
 interface ExpenseRowProps {
   expense: ExpenseRowDTO;
@@ -33,6 +34,7 @@ interface ExpenseRowProps {
 
 export default function ExpenseRow({ expense }: ExpenseRowProps) {
   const router = useRouter();
+  const { currency } = useUserPreferences();
   const [isPending, startTransition] = useTransition();
   const [y, m, d] = expense.expenseDate.split("-").map(Number);
   const date = new Date(y, m - 1, d);
@@ -102,7 +104,7 @@ export default function ExpenseRow({ expense }: ExpenseRowProps) {
 
       <TableCell className="text-right py-4 pr-6">
         <span className="font-mono font-bold text-sm tracking-tighter text-foreground tabular-nums">
-          {formatCurrency(expense.amount)}
+          {formatCurrency(expense.amount, currency)}
         </span>
       </TableCell>
 

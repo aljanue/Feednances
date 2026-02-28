@@ -1,8 +1,9 @@
 "use client";
 
-import { useTransition } from "react";
+import { useTransition, useState } from "react";
 import { format, differenceInDays } from "date-fns";
-import { MoreHorizontal, Loader2, Play, Pause, Trash2 } from "lucide-react";
+import { normalizeToUTCMidnight } from "@/utils/subscriptions.utils";
+import { MoreHorizontal, Loader2, Play, Pause, Trash2, Edit } from "lucide-react";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -28,13 +29,17 @@ import { NotificationToast } from "@/components/shared/notification-toast";
 import { formatCurrency } from "@/lib/utils/formatters";
 import type { SubscriptionDetailDTO } from "@/lib/dtos/subscriptions.dto";
 import { deleteSubscriptionAction, toggleSubscriptionAction } from "@/lib/actions/subscriptions";
+import { useUserPreferences } from "@/components/dashboard/user-preferences-provider";
+import EditSubscriptionModal from "./edit-subscription-modal";
 
 interface SubscriptionCardProps {
   subscription: SubscriptionDetailDTO;
 }
 
 export default function SubscriptionCard({ subscription }: SubscriptionCardProps) {
+  const { currency } = useUserPreferences();
   const [isPending, startTransition] = useTransition();
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   const handleToggle = () => {
     startTransition(async () => {
@@ -83,7 +88,10 @@ export default function SubscriptionCard({ subscription }: SubscriptionCardProps
   };
 
   const nextRunDate = new Date(subscription.nextRun);
-  const daysUntilNextRun = differenceInDays(nextRunDate, new Date());
+  const normalizedNextRun = normalizeToUTCMidnight(nextRunDate);
+  const normalizedToday = normalizeToUTCMidnight(new Date());
+
+  const daysUntilNextRun = differenceInDays(normalizedNextRun, normalizedToday);
   
   const isApproaching = daysUntilNextRun >= 0 && daysUntilNextRun <= 3;
   const isOverdue = daysUntilNextRun < 0;
@@ -130,6 +138,9 @@ export default function SubscriptionCard({ subscription }: SubscriptionCardProps
                 </>
               )}
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setIsEditOpen(true)} disabled={isPending} className="cursor-pointer">
+              <Edit className="mr-2 size-4" /> Edit
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <AlertDialog>
               <AlertDialogTrigger asChild>
@@ -169,7 +180,7 @@ export default function SubscriptionCard({ subscription }: SubscriptionCardProps
         <span className="text-xs text-muted-foreground font-medium mb-1">Cost</span>
         <div className="flex items-baseline gap-1">
           <span className="text-2xl font-bold tracking-tight tabular-nums">
-            {formatCurrency(subscription.amount)}
+            {formatCurrency(subscription.amount, currency)}
           </span>
         </div>
       </div>
@@ -200,7 +211,7 @@ export default function SubscriptionCard({ subscription }: SubscriptionCardProps
         <div className="absolute top-4 right-14">
            {isApproaching && (
              <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20 shadow-none px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
-               {daysUntilNextRun === 0 ? "Tomorrow" : `In ${daysUntilNextRun} day${daysUntilNextRun !== 1 ? "s" : ""}`}
+              {daysUntilNextRun === 1 ? "Tomorrow" : `In ${daysUntilNextRun} day${daysUntilNextRun !== 1 ? "s" : ""}`}
              </Badge>
            )}
            {isOverdue && (
@@ -216,6 +227,13 @@ export default function SubscriptionCard({ subscription }: SubscriptionCardProps
            </Badge>
         </div>
       )}
+
+      {/* Edit Modal */}
+      <EditSubscriptionModal
+        subscription={subscription}
+        open={isEditOpen}
+        onOpenChange={setIsEditOpen}
+      />
     </div>
   );
 }

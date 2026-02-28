@@ -27,6 +27,14 @@ type SubscriptionValidationResult =
   | { success: false; fieldErrors: Record<string, string> }
   | { success: true; data: z.infer<typeof subscriptionSchema> };
 
+export const editSubscriptionSchema = subscriptionSchema.extend({
+  id: z.string().uuid("Invalid subscription ID"),
+});
+
+type EditSubscriptionValidationResult =
+  | { success: false; fieldErrors: Record<string, string> }
+  | { success: true; data: z.infer<typeof editSubscriptionSchema> };
+
 export function validateSubscriptionForm(formData: FormData): SubscriptionValidationResult {
   const data = {
     name: formData.get("name")?.toString() || "",
@@ -39,6 +47,33 @@ export function validateSubscriptionForm(formData: FormData): SubscriptionValida
   };
 
   const result = subscriptionSchema.safeParse(data);
+
+  if (!result.success) {
+    const errorMap: Record<string, string> = {};
+    for (const error of result.error.errors) {
+      if (error.path[0]) {
+        errorMap[error.path[0].toString()] = error.message;
+      }
+    }
+    return { success: false, fieldErrors: errorMap };
+  }
+
+  return { success: true, data: result.data };
+}
+
+export function validateEditSubscriptionForm(formData: FormData): EditSubscriptionValidationResult {
+  const data = {
+    id: formData.get("id")?.toString() || "",
+    name: formData.get("name")?.toString() || "",
+    amount: formData.get("amount")?.toString() || "",
+    category: formData.get("category")?.toString() || "",
+    timeUnitId: formData.get("timeUnitId")?.toString() || "",
+    frequencyValue: formData.get("frequencyValue")?.toString() || "1",
+    startsAt: formData.get("startsAt")?.toString() || "",
+    recordPastPayment: formData.get("recordPastPayment"),
+  };
+
+  const result = editSubscriptionSchema.safeParse(data);
 
   if (!result.success) {
     const errorMap: Record<string, string> = {};

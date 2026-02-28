@@ -1,9 +1,12 @@
+"use client";
+
 import type { SubscriptionDTO } from "@/lib/dtos/dashboard"; 
 import { formatCurrency } from "@/lib/utils/formatters"; 
 import { format, differenceInCalendarDays, parseISO } from "date-fns";
 import { CalendarDays } from "lucide-react";
 import Link from "next/link";
 import EmptyState from "./empty-state";
+import { useUserPreferences } from "@/components/dashboard/user-preferences-provider";
 
 interface SubscriptionsCardProps {
   items: SubscriptionDTO[];
@@ -11,6 +14,7 @@ interface SubscriptionsCardProps {
 
 export default function SubscriptionsCard({ items }: SubscriptionsCardProps) {
   const today = new Date();
+  const { currency } = useUserPreferences();
 
   return (
     <div className="h-full w-full flex flex-col gap-6">
@@ -28,6 +32,7 @@ export default function SubscriptionsCard({ items }: SubscriptionsCardProps) {
               key={subscription.id}
               subscription={subscription}
               today={today}
+              currency={currency}
             />
           ))}
         </div>
@@ -53,9 +58,11 @@ function CardHeader() {
 function SubscriptionRow({
   subscription,
   today,
+  currency,
 }: {
   subscription: SubscriptionDTO;
   today: Date;
+    currency: string;
 }) {
   const nextDate =
     typeof subscription.nextDate === "string"
@@ -72,13 +79,17 @@ function SubscriptionRow({
       <div className="flex flex-col">
         <p className="text-md font-semibold">{subscription.name}</p>
         <p className="text-sm text-muted-foreground">
-          {formatCurrency(subscription.amount)} / {subscription.timeValue} {subscription.timeType}
+          {formatCurrency(subscription.amount, currency)} / {subscription.timeValue} {subscription.timeType}
         </p>
       </div>
       <div>
         {daysLeft === 2 ? (
           <span className="bg-amber-500/20 text-amber-500 text-xs font-bold px-2 py-1 rounded border border-amber-500/30 uppercase">
             2 DAYS LEFT
+          </span>
+        ) : daysLeft === 1 ? (
+          <span className="bg-amber-500/20 text-amber-500 text-xs font-bold px-2 py-1 rounded border border-amber-500/30 uppercase">
+            TOMORROW
           </span>
         ) : (
           <span className="text-sm text-muted-foreground font-bold px-2 py-1 uppercase">

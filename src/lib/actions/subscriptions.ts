@@ -2,10 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
-import { deleteSubscription, toggleSubscriptionStatus, createSubscriptionWithTransaction } from "@/lib/data/subscriptions.queries";
-import { validateSubscriptionForm } from "@/lib/validations/subscription";
+import { deleteSubscription, toggleSubscriptionStatus, createSubscriptionWithTransaction, updateSubscriptionDetails } from "@/lib/data/subscriptions.queries";
+import { validateSubscriptionForm, validateEditSubscriptionForm } from "@/lib/validations/subscription";
 import { formatAmount } from "@/utils/format-data.utils";
-import { calculateFutureNextRuns } from "@/utils/subscriptions.utils";
+import { calculateFutureNextRuns, normalizeToUTCMidnight } from "@/utils/subscriptions.utils";
 import { getTimeUnitById } from "@/lib/data/time-units.queries";
 export interface SubscriptionActionState {
   success?: boolean;
@@ -58,8 +58,8 @@ export async function createSubscriptionAction(
     const now = new Date();
     
     // Normalize dates to start of day for comparison to avoid timezone issues
-    const startsAtNormalized = new Date(parsedStartsAt.setHours(0, 0, 0, 0));
-    const nowNormalized = new Date(now.setHours(0, 0, 0, 0));
+    const startsAtNormalized = normalizeToUTCMidnight(parsedStartsAt);
+    const nowNormalized = normalizeToUTCMidnight(now);
 
     let nextRun = startsAtNormalized;
     let initialExpenses: any[] = [];
@@ -150,5 +150,80 @@ export async function toggleSubscriptionAction(
   } catch (error) {
     console.error("Error toggling subscription:", error);
     return { error: "Failed to toggle subscription" };
+  }
+}
+
+export async function editSubscriptionAction(
+  _prevState: SubscriptionActionState,
+  formData: FormData,
+): Promise<SubscriptionActionState> {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return { error: "Unauthorized.", actionId: Date.now() };
+  }
+
+  const validation = validateEditSubscriptionForm(formData);
+  if (!validation.success) {
+    return {
+      fieldErrors: validation.fieldErrors,
+      actionId: Date.now(),
+    };
+  }
+
+  const { id, name, amount, category, timeUnitId, frequencyValue, startsAt } = validation.data;
+
+  let amountFormatted: string;
+  try {
+    amountFormatted = formatAmount(amount);
+  } catch (error) {
+    return {
+      fieldErrors: {
+        amount: error instanceof Error ? error.message : "Invalid amount.",
+      },
+      actionId: Date.now(),
+    };
+  }
+
+  try {
+    const parsedStartsAt = new Date(startsAt);
+    const parsedFrequency = Number(frequencyValue);
+
+    const dbTimeUnit = await getTimeUnitById(timeUnitId);
+    if (!dbTimeUnit) {
+      return { error: "Invalid billing period.", actionId: Date.now() };
+    }
+
+    const startsAtNormalized = normalizeToUTCMidnight(parsedStartsAt);
+    const nowNormalized = normalizeToUTCMidnight(new Date());
+
+    let nextRun = startsAtNormalized;
+
+    if (startsAtNormalized <= nowNormalized) {
+      const { nextRun: computedNextRun } = calculateFutureNextRuns(parsedFrequency, dbTimeUnit.value, startsAtNormalized);
+      nextRun = computedNextRun;
+    }
+
+    const updated = await updateSubscriptionDetails(id, session.user.id, {
+      name,
+      amount: amountFormatted,
+      categoryId: category,
+      frequencyValue: parsedFrequency,
+      timeUnitId: timeUnitId,
+      startsAt: startsAtNormalized,
+      nextRun: nextRun,
+    });
+
+    if (!updated || updated.length === 0) {
+      return { error: "Subscription not found or not authorized to edit", actionId: Date.now() };
+    }
+
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/subscriptions");
+
+    return { success: true, actionId: Date.now() };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unable to edit subscription.";
+    return { error: message, actionId: Date.now() };
   }
 }

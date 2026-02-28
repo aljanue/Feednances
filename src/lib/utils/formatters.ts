@@ -1,7 +1,7 @@
 export function formatCurrency(
   value: number,
-  locale = "es-ES",
   currency = "EUR",
+  locale = "es-ES",
 ) {
   return new Intl.NumberFormat(locale, {
     style: "currency",

@@ -79,6 +79,17 @@ export async function updateUserProfile(userId: string, data: { username: string
     .returning();
 }
 
+export async function updateUserPreferences(userId: string, data: { currency: string; timeZone: string }) {
+  return await db
+    .update(users)
+    .set({
+      currency: data.currency,
+      timeZone: data.timeZone,
+    })
+    .where(eq(users.id, userId))
+    .returning();
+}
+
 export async function updateUserFirstLogin(userId: string, firstLogin: boolean) {
   return await db
     .update(users)

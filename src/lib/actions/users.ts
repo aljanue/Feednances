@@ -41,6 +41,37 @@ export async function updateProfileAction(
   }
 }
 
+export async function updatePreferencesAction(
+  prevState: ProfileFormState,
+  formData: FormData
+): Promise<ProfileFormState> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, message: "Unauthorized" };
+  }
+
+  const currency = formData.get("currency") as string;
+  const timeZone = formData.get("timeZone") as string;
+
+  if (!currency || !timeZone) {
+    return { success: false, message: "Currency and timeZone are required." };
+  }
+
+  try {
+    const { updateUserPreferences } = await import("@/lib/data/users.queries");
+    await updateUserPreferences(session.user.id, {
+      currency,
+      timeZone,
+    });
+
+    revalidatePath("/dashboard/settings");
+    return { success: true, message: "Preferences updated successfully." };
+  } catch (error) {
+    console.error("Error updating preferences:", error);
+    return { success: false, message: "Failed to update preferences." };
+  }
+}
+
 export async function updatePasswordAction(
   prevState: ProfileFormState,
   formData: FormData

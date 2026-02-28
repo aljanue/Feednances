@@ -133,3 +133,15 @@ export async function toggleSubscriptionStatus(id: string, userId: string, activ
     .where(and(eq(subscriptions.id, id), eq(subscriptions.userId, userId)))
     .returning();
 }
+
+export async function updateSubscriptionDetails(
+  id: string,
+  userId: string,
+  data: Partial<typeof subscriptions.$inferInsert>
+) {
+  return await db
+    .update(subscriptions)
+    .set(data)
+    .where(and(eq(subscriptions.id, id), eq(subscriptions.userId, userId)))
+    .returning();
+}

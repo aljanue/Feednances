@@ -6,6 +6,7 @@ import EllipsisMenu, { EllipsisMenuItem } from "./ellipsis-menu";
 import PercentageChangeBadge from "@/components/shared/percentage-change-badge";
 import type { NumberCardDTO, NumberCardMetricKey } from "@/lib/dtos/dashboard";
 import { formatCurrency } from "@/lib/utils/formatters";
+import { useUserPreferences } from "@/components/dashboard/user-preferences-provider";
 
 interface NumberCardProps {
   data: NumberCardDTO;
@@ -23,6 +24,7 @@ export default function NumberCard({ data }: NumberCardProps) {
 
   const [metricKey, setMetricKey] = useState<NumberCardMetricKey>("monthly");
   const metric = metrics[metricKey];
+  const { currency } = useUserPreferences();
 
   const menuItems: EllipsisMenuItem[] = (
     Object.keys(metricLabels) as NumberCardMetricKey[]
@@ -35,7 +37,7 @@ export default function NumberCard({ data }: NumberCardProps) {
     <div className="h-full w-full flex flex-col gap-2 justify-between">
       <NumberCardHeader title={metric.title} menuItems={menuItems} />
       <div className="flex flex-col gap-2">
-        <NumberCardValue value={metric.value} />
+        <NumberCardValue value={metric.value} currency={currency} />
         <NumberCardChange
           value={metric.value}
           period={metric.period}
@@ -66,8 +68,8 @@ function NumberCardHeader({
   );
 }
 
-function NumberCardValue({ value }: { value: number }) {
-  return <p className="text-5xl font-bold">{formatCurrency(value)}</p>;
+function NumberCardValue({ value, currency }: { value: number; currency: string }) {
+  return <p className="text-5xl font-bold">{formatCurrency(value, currency)}</p>;
 }
 
 function NumberCardChange({

@@ -490,6 +490,8 @@ export async function getDashboardData(
       category: categoryFunc(item.category),
       active: Boolean(item.active),
       nextDate: item.nextRun.toISOString(),
+      startsAt: (item.startsAt || item.nextRun).toISOString(),
+      timeUnitId: item.timeUnitId,
       timeValue: item.frequencyValue,
       timeType: item.timeUnit ? formatTimeAbbreviationByType(item.timeUnit.value) : item.timeUnitId,
     };

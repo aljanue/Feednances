@@ -3,12 +3,14 @@
 import type { SpendingPaceDTO } from "@/lib/dtos/reports.dto";
 import { formatCurrency } from "@/lib/utils/formatters";
 import { cn } from "@/lib/utils";
+import { useUserPreferences } from "@/components/dashboard/user-preferences-provider";
 
 interface SpendingPaceCardProps {
   data: SpendingPaceDTO;
 }
 
 export default function SpendingPaceCard({ data }: SpendingPaceCardProps) {
+  const { currency } = useUserPreferences();
   const { daysElapsed, totalDays, currentSpend, projectedSpend, lastMonthTotal, dailyAverage } = data;
   const progressPercent = totalDays > 0 ? (daysElapsed / totalDays) * 100 : 0;
 
@@ -76,12 +78,12 @@ export default function SpendingPaceCard({ data }: SpendingPaceCardProps) {
       <div className="grid grid-cols-2 gap-4 w-full">
         <StatBox
           label="Current Spend"
-          value={formatCurrency(currentSpend)}
+          value={formatCurrency(currentSpend, currency)}
           sublabel={`Day ${daysElapsed} of ${totalDays}`}
         />
         <StatBox
           label="Projected Total"
-          value={formatCurrency(projectedSpend)}
+          value={formatCurrency(projectedSpend, currency)}
           sublabel={
             isOverPace
               ? "Over last month's pace"
@@ -93,12 +95,12 @@ export default function SpendingPaceCard({ data }: SpendingPaceCardProps) {
         />
         <StatBox
           label="Daily Average"
-          value={formatCurrency(dailyAverage)}
+          value={formatCurrency(dailyAverage, currency)}
           sublabel="per day this month"
         />
         <StatBox
           label="Last Month"
-          value={formatCurrency(lastMonthTotal)}
+          value={formatCurrency(lastMonthTotal, currency)}
           sublabel="total spend"
         />
       </div>

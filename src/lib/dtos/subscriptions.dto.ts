@@ -11,6 +11,9 @@ export interface SubscriptionDetailDTO {
   };
   active: boolean;
   nextRun: string; // ISO string
+  nextDate: string; // ISO string matching SubscriptionDTO
+  startsAt: string; // ISO string
+  timeUnitId: string;
   timeValue: number;
   timeType: string;
 }

@@ -9,7 +9,7 @@ import { getUserById } from "@/lib/data/users.queries";
 import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { calculateNextRun } from "@/utils/subscriptions.utils";
+import { calculateNextRun, normalizeToUTCMidnight } from "@/utils/subscriptions.utils";
 import { getTimeUnitById } from "@/lib/data/time-units.queries";
 
 export async function POST(req: NextRequest) {
@@ -63,11 +63,8 @@ export async function POST(req: NextRequest) {
     const today = new Date();
     const startsAtDate = body.startsAt ? new Date(body.startsAt) : today;
 
-    const todayMidnight = new Date();
-    todayMidnight.setHours(0, 0, 0, 0);
-
-    const startMidnight = new Date(startsAtDate);
-    startMidnight.setHours(0, 0, 0, 0);
+    const todayMidnight = normalizeToUTCMidnight(today);
+    const startMidnight = normalizeToUTCMidnight(startsAtDate);
 
     const shouldChargeNow = startMidnight <= todayMidnight;
 
@@ -91,7 +88,7 @@ export async function POST(req: NextRequest) {
         startsAtDate,
       );
     } else {
-      initialNextRun = startsAtDate;
+      initialNextRun = startMidnight;
     }
 
     await createSubscriptionWithTransaction(
@@ -104,7 +101,7 @@ export async function POST(req: NextRequest) {
         categoryId: body.categoryId,
         nextRun: initialNextRun,
         active: true,
-        startsAt: startsAtDate,
+        startsAt: startMidnight,
       },
       expenseDataArray,
     );

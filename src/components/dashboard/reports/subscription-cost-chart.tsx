@@ -12,12 +12,14 @@ import {
 import type { SubscriptionCostItem } from "@/lib/dtos/reports.dto";
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { formatCurrency } from "@/lib/utils/formatters";
+import { useUserPreferences } from "@/components/dashboard/user-preferences-provider";
 
 interface SubscriptionCostChartProps {
   data: SubscriptionCostItem[];
 }
 
 export default function SubscriptionCostChart({ data }: SubscriptionCostChartProps) {
+  const { currency } = useUserPreferences();
   const chartConfig = data.reduce<Record<string, { label: string; color: string }>>(
     (acc, item) => {
       acc[item.name] = { label: item.name, color: item.color };
@@ -54,7 +56,7 @@ export default function SubscriptionCostChart({ data }: SubscriptionCostChartPro
                 width={100}
               />
               <Tooltip
-                content={<ChartTooltipContent hideLabel />}
+                content={<ChartTooltipContent hideLabel formatter={(value) => formatCurrency(Number(value), currency)} />}
                 cursor={{ fill: "var(--muted)", opacity: 0.15 }}
               />
               <Bar dataKey="amount" name="Monthly cost" radius={[0, 6, 6, 0]}>
@@ -72,7 +74,7 @@ export default function SubscriptionCostChart({ data }: SubscriptionCostChartPro
             {data.length} active subscription{data.length !== 1 ? "s" : ""}
           </span>
           <span className="text-sm font-semibold tabular-nums">
-            {formatCurrency(totalCost)}/mo
+            {formatCurrency(totalCost, currency)}/mo
           </span>
         </div>
       </div>

@@ -1,12 +1,16 @@
+"use client";
+
 import type { AverageCardDTO } from "@/lib/dtos/dashboard";
 import { formatCurrency } from "@/lib/utils/formatters";
 import PercentageChangeBadge from "@/components/shared/percentage-change-badge";
+import { useUserPreferences } from "@/components/dashboard/user-preferences-provider";
 
 interface AverageCardProps {
   data: AverageCardDTO;
 }
 
 export default function AverageCard({ data }: AverageCardProps) {
+  const { currency } = useUserPreferences();
   const absoluteDiff = data.value > 0 ? data.currentMonthTotal - data.value : null;
 
   return (
@@ -17,7 +21,7 @@ export default function AverageCard({ data }: AverageCardProps) {
         </p>
         <div className="flex items-baseline gap-2">
           <p className="text-3xl font-semibold tracking-tight">
-            {formatCurrency(data.value)}
+            {formatCurrency(data.value, currency)}
           </p>
         </div>
       </div>
@@ -31,7 +35,7 @@ export default function AverageCard({ data }: AverageCardProps) {
             format="currency"
           />
           <p className="text-xs text-muted-foreground">
-            You spent <strong>{formatCurrency(data.currentMonthTotal)}</strong>{" "}
+            You spent <strong>{formatCurrency(data.currentMonthTotal, currency)}</strong>{" "}
             this month.
           </p>
         </div>

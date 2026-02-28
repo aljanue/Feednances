@@ -78,6 +78,9 @@ export async function getSubscriptionsPageData(userId: string): Promise<Subscrip
       },
       active: sub.active ?? true,
       nextRun: sub.nextRun.toISOString(),
+      nextDate: sub.nextRun.toISOString(),
+      startsAt: (sub.startsAt || sub.nextRun).toISOString(),
+      timeUnitId: sub.timeUnitId,
       timeValue: sub.frequencyValue,
       timeType: sub.timeUnit ? formatTimeAbbreviationByType(sub.timeUnit.value) : "m",
     };

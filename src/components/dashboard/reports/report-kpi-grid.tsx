@@ -14,6 +14,7 @@ import type { ReportsDTO } from "@/lib/dtos/reports.dto";
 import { formatCurrency } from "@/lib/utils/formatters";
 import MetricCard from "@/components/shared/metric-card";
 import PercentageChangeBadge from "@/components/shared/percentage-change-badge";
+import { useUserPreferences } from "@/components/dashboard/user-preferences-provider";
 
 interface ReportKpiGridProps {
   kpis: ReportsDTO["kpis"];
@@ -31,6 +32,7 @@ const kpiMeta = [
 ];
 
 export default function ReportKpiGrid({ kpis }: ReportKpiGridProps) {
+  const { currency } = useUserPreferences();
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
       {kpiMeta.map(({ key, icon, isCurrency, tooltip }) => {
@@ -42,7 +44,7 @@ export default function ReportKpiGrid({ kpis }: ReportKpiGridProps) {
         } else if (key === "transactionCount") {
           displayValue = kpi.value.toLocaleString();
         } else if (isCurrency) {
-          displayValue = formatCurrency(kpi.value);
+          displayValue = formatCurrency(kpi.value, currency);
         } else {
           displayValue = kpi.value.toLocaleString();
         }

@@ -91,6 +91,8 @@ export interface SubscriptionDTO {
   category: CategoryDTO;
   active: boolean;
   nextDate: string;
+  startsAt: string;
+  timeUnitId: string;
   timeValue: number;
   timeType: string;
 }

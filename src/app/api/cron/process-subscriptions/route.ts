@@ -4,8 +4,8 @@ import {
   processSubscriptionCharge,
   getUpcomingSubscriptions,
 } from "@/lib/data/subscriptions.queries";
-import { calculateNextRun } from "@/utils/subscriptions.utils";
-import { addDays, startOfDay, endOfDay } from "date-fns";
+import { calculateNextRun, normalizeToUTCMidnight } from "@/utils/subscriptions.utils";
+import { addDays } from "date-fns";
 import {
   sendSubscriptionChargedNotification,
   sendUpcomingSubscriptionNotification,
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const now = new Date();
+    const now = normalizeToUTCMidnight(new Date());
     const results: string[] = [];
 
     const subsDue = await getSubscriptionsDue(now);
@@ -62,11 +62,9 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const targetDate = addDays(now, 2);
-    const startOfTarget = startOfDay(targetDate);
-    const endOfTarget = endOfDay(targetDate);
+    const targetDate = normalizeToUTCMidnight(addDays(new Date(), 2));
 
-    const subsUpcoming = await getUpcomingSubscriptions(startOfTarget, endOfTarget);
+    const subsUpcoming = await getUpcomingSubscriptions(targetDate);
 
     for (const sub of subsUpcoming) {
       if (sub.telegramChatId) {

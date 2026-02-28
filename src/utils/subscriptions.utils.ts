@@ -1,11 +1,15 @@
 import { addDays, addMonths, addWeeks, addYears } from "date-fns";
 
+export function normalizeToUTCMidnight(date: Date | string | number): Date {
+  const d = new Date(date);
+  return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0));
+}
 export function calculateNextRun(
   value: number | string,
   type: string,
   currentRunDate?: Date,
 ): Date {
-  const baseDate = currentRunDate ? new Date(currentRunDate) : new Date();
+  const baseDate = currentRunDate ? normalizeToUTCMidnight(currentRunDate) : normalizeToUTCMidnight(new Date());
 
   const numericValue = parseInt(value.toString(), 10);
 
@@ -33,8 +37,8 @@ export function calculateFutureNextRuns(
   type: string,
   startsAt: Date
 ): { nextRun: Date; pastRuns: Date[] } {
-  const now = new Date();
-  let next = new Date(startsAt);
+  const now = normalizeToUTCMidnight(new Date());
+  let next = normalizeToUTCMidnight(startsAt);
   const pastRuns: Date[] = [];
 
   // Safety break to prevent infinite loops if inputs are messed up.

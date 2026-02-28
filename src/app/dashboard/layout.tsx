@@ -4,6 +4,7 @@ import DashboardNavbar from "@/components/dashboard/navbar";
 import DashboardTopbar from "@/components/dashboard/topbar";
 import { getUserById } from "@/lib/data/users.queries";
 import { SidebarProvider } from "@/components/dashboard/sidebar-provider";
+import { UserPreferencesProvider } from "@/components/dashboard/user-preferences-provider";
 
 export const metadata = {
   title: "Dashboard | Feednances",
@@ -38,8 +39,9 @@ export default async function DashboardLayout({
   }
 
   return (
-    <SidebarProvider>
-      <div className="flex h-screen w-full overflow-hidden bg-background">
+    <UserPreferencesProvider currency={user?.currency ?? "EUR"} timeZone={user?.timeZone ?? "UTC"}>
+      <SidebarProvider>
+        <div className="flex h-screen w-full overflow-hidden bg-background">
         {" "}
         <DashboardNavbar
           username={user?.username ?? ""}
@@ -63,5 +65,6 @@ export default async function DashboardLayout({
         </main>
       </div>
     </SidebarProvider>
+    </UserPreferencesProvider>
   );
 }
