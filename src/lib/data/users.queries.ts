@@ -67,14 +67,12 @@ export async function updateUserPassword(userId: string, hashedPassword: string)
     .where(eq(users.id, userId));
 }
 
-export async function updateUserProfile(userId: string, data: { username: string; fullName: string | null; email: string }) {
+type UserUpdateData = Partial<typeof users.$inferInsert>;
+
+export async function updateUserProfile(userId: string, data: UserUpdateData) {
   return await db
     .update(users)
-    .set({
-      username: data.username,
-      fullName: data.fullName,
-      email: data.email,
-    })
+    .set(data)
     .where(eq(users.id, userId))
     .returning();
 }

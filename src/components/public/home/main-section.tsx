@@ -55,7 +55,9 @@ export default function MainSection() {
 
           <motion.div variants={item} className="flex flex-col sm:flex-row gap-6 w-full sm:w-auto mt-8 px-4 sm:px-0">
             <Button className="rounded-lg text-lg px-10 py-7 font-semibold shadow-[0_0_40px_-10px_rgba(43,238,108,0.6)] hover:shadow-[0_0_50px_-10px_rgba(43,238,108,0.6)] transition-all bg-primary text-primary-foreground hover:bg-primary/90 duration-300 ease-in-out">
-              Start Your Free Trial
+              <Link href="/register">
+                Start Your Free Trial
+              </Link>
             </Button>
             <Button size="lg" variant="outline" className="rounded-lg text-lg px-10 py-7 font-semibold border-white/10 bg-white/5 backdrop-blur-md hover:bg-white/10 transition-colors duration-300 ease-in-out" asChild>
               <Link href="/about">

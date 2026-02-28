@@ -35,6 +35,7 @@ export const users = pgTable("user", {
   timeZone: text("time_zone").default("UTC").notNull(),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   telegramChatId: text("telegram_chat_id"),
+  profileSetupDismissed: boolean("profile_setup_dismissed").default(false).notNull(),
 });
 
 /**

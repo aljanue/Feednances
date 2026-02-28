@@ -180,6 +180,24 @@ export async function unlinkTelegramAction(): Promise<{ success: boolean; messag
   }
 }
 
+export async function dismissProfileSetupBannerAction() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, message: "Unauthorized" };
+  }
+
+  try {
+    await updateUserProfile(session.user.id, {
+      profileSetupDismissed: true,
+    });
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (error) {
+    console.error("Error dismissing banner:", error);
+    return { success: false, message: "Failed to dismiss banner." };
+  }
+}
+
 export async function deleteApiKeyAction(): Promise<{ success: boolean; message: string }> {
   try {
     const session = await auth();
