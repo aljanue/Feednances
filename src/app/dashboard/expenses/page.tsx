@@ -9,6 +9,8 @@ import TitleHeader from "@/components/dashboard/title-header";
 import NewExpenseModal from "@/components/dashboard/new-expense-modal";
 import { ReceiptText } from "lucide-react";
 import { getExpensesPageData } from "@/lib/services/expenses";
+import { ExportButton } from "@/components/dashboard/export/ExportButton";
+import { format } from "date-fns";
 import type { ExpenseSortField, SortDirection } from "@/lib/dtos/expenses.dto";
 
 const VALID_SORT_FIELDS: ExpenseSortField[] = ["expenseDate", "amount", "concept"];
@@ -62,7 +64,31 @@ export default async function ExpensesPage({ searchParams }: ExpensesPageProps) 
           description="Real-time audit log and historical expenditure tracking."
           icon={<ReceiptText />}
         />
-        <NewExpenseModal />
+        <div className="flex items-center gap-3">
+          <ExportButton
+            data={{
+              title: "Expenses Report",
+              filename: `expenses_${format(new Date(), "yyyy-MM-dd")}`,
+              columns: [
+                { header: "Date", key: "formattedDate" },
+                { header: "Concept", key: "concept" },
+                { header: "Category", key: "categoryName" },
+                { header: "Amount", key: "formattedAmount" }
+              ],
+              data: data.expenses.map(e => ({
+                ...e,
+                categoryName: e.category?.name ?? "Uncategorized",
+                formattedDate: format(new Date(e.expenseDate), "PP"),
+                formattedAmount: `${Number(e.amount).toFixed(2)}`
+              })),
+              summary: {
+                "Total (This Month)": `${data.summary.monthTotal.toFixed(2)}`,
+                "Count": data.expenses.length
+              }
+            }}
+          />
+          <NewExpenseModal />
+        </div>
       </div>
       <ExpensesDataSummary summary={data.summary} />
       <ExpensesTable

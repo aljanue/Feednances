@@ -101,7 +101,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="pt-8 mt-4 border-t border-border/40 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs text-muted-foreground">
-            © {currentYear} Fiscal Flow. All rights reserved.
+            © {currentYear} Feednances. All rights reserved.
           </p>
           <div className="flex items-center gap-2">
             <span className="relative flex h-2 w-2">

@@ -292,3 +292,15 @@ export const userHiddenCategoriesRelations = relations(userHiddenCategories, ({ 
   user: one(users, { fields: [userHiddenCategories.userId], references: [users.id] }),
   category: one(categories, { fields: [userHiddenCategories.categoryId], references: [categories.id] }),
 }));
+
+/**
+ * TABLE: shortcuts
+ * Stores iOS Shortcut versions and links.
+ */
+export const shortcuts = pgTable("shortcuts", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  version: text("version").notNull(), // format x.x.x
+  link: text("link").notNull(),
+  isCurrent: boolean("is_current").default(false).notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+});

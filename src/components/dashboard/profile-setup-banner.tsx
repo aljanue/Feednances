@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShieldCheck, KeyRound, MessageCircle, Globe, X, Loader2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { dismissProfileSetupBannerAction } from "@/lib/actions/users";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { toast } from "sonner";
 import { NotificationToast } from "@/components/shared/notification-toast";
 
@@ -25,8 +26,13 @@ export function ProfileSetupBanner({
   const [isVisible, setIsVisible] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [isMounted, setIsMounted] = useState(false);
+  const pathname = usePathname();
 
-  // If they have all core features configured, do not render anything
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   if (hasPassword && hasSecretKey && hasTelegram) {
     return null;
   }
@@ -79,7 +85,7 @@ export function ProfileSetupBanner({
                   Complete your profile setup
                 </h3>
                 <p className="text-sm text-muted-foreground max-w-2xl">
-                  Unlock the full potential of your Fiscal Flow experience. We highly recommend configuring the following features to secure your account and access advanced integrations.
+                  Unlock the full potential of your Feednances experience. We highly recommend configuring the following features to secure your account and access advanced integrations.
                 </p>
               </div>
 
@@ -98,7 +104,7 @@ export function ProfileSetupBanner({
 
               {/* Badges / Checkmarks Grid - Hidden on mobile unless expanded */}
               <AnimatePresence>
-                {(isExpanded || (typeof window !== 'undefined' && window.innerWidth >= 640)) && (
+                {(isExpanded || (isMounted && window.innerWidth >= 640)) && (
                   <motion.div 
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
@@ -142,22 +148,35 @@ export function ProfileSetupBanner({
             </div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-wrap items-center gap-3 pt-2">
-              <Button asChild className="font-semibold">
-                <Link href="/dashboard/settings">
-                  Go to Settings
-                </Link>
-              </Button>
-              <Button 
-                variant="ghost" 
-                onClick={handleDontShowAgain}
-                disabled={isPending}
-                className="text-muted-foreground hover:text-foreground font-medium"
-              >
-                {isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
-                Don't show again
-              </Button>
-            </div>
+            <AnimatePresence>
+              {pathname !== '/dashboard/settings' && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                  className="overflow-hidden"
+                >
+                  <div className="flex flex-wrap items-center gap-3 pt-2 pb-1">
+                    <Button asChild className="font-semibold">
+                      <Link href="/dashboard/settings">
+                        Go to Settings
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={handleDontShowAgain}
+                      disabled={isPending}
+                      className="text-muted-foreground hover:text-foreground font-medium"
+                    >
+                      {isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                      Don't show again
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
 
             {/* Close Button absolute on desktop, relative on mobile if needed */}
             <Button

@@ -6,6 +6,8 @@ import MainSection from "@/components/dashboard/main-section";
 import TitleHeader from "@/components/dashboard/title-header";
 import SubscriptionsLayout from "@/components/dashboard/subscriptions/subscriptions-layout";
 import { NewSubscriptionButton } from "@/components/dashboard/subscriptions/new-subscription-button";
+import { ExportButton } from "@/components/dashboard/export/ExportButton";
+import { format } from "date-fns";
 import { CalendarClock } from "lucide-react";
 
 export default async function SubscriptionsPage() {
@@ -28,6 +30,31 @@ export default async function SubscriptionsPage() {
           icon={<CalendarClock />}
         />
         <div className="flex items-center gap-3">
+          <ExportButton
+            data={{
+              title: "Active Subscriptions",
+              filename: `subscriptions_${format(new Date(), "yyyy-MM-dd")}`,
+              columns: [
+                { header: "Name", key: "name" },
+                { header: "Category", key: "categoryName" },
+                { header: "Frequency", key: "frequency" },
+                { header: "Next Run", key: "formattedNextRun" },
+                { header: "Amount", key: "formattedAmount" }
+              ],
+              data: data.subscriptions.map(s => ({
+                ...s,
+                categoryName: s.category?.name ?? "Uncategorized",
+                frequency: `${s.timeValue} ${s.timeType}`,
+                formattedNextRun: format(new Date(s.nextRun), "PP"),
+                formattedAmount: `${Number(s.amount).toFixed(2)}`
+              })),
+              summary: {
+                "Monthly Total": `${data.kpis.totalMonthlySpend.toFixed(2)}`,
+                "Annual Projected": `${data.kpis.annualProjected.toFixed(2)}`,
+                "Active Subscriptions": data.subscriptions.length
+              }
+            }}
+          />
           <NewSubscriptionButton />
         </div>
       </div>

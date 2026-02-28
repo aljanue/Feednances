@@ -16,7 +16,7 @@ export default function TermsOfServicePage() {
           <section>
             <h2 className="text-2xl font-semibold mt-8 mb-4">1. Acceptance of Terms</h2>
             <p className="text-muted-foreground leading-relaxed">
-              By accessing and using Feednances (also referred to as "Fiscal Flow"), you accept and agree to be bound by the terms and provision of this agreement. Our service provides expense tracking, subscription management, and related financial notification services via integrated platforms like Telegram and iOS Shortcuts.
+              By accessing and using Feednances, you accept and agree to be bound by the terms and provision of this agreement. Our service provides expense tracking, subscription management, and related financial notification services via integrated platforms like Telegram and iOS Shortcuts.
             </p>
           </section>
 

@@ -37,6 +37,8 @@ import RecurringVsOneTimeChart from "./recurring-vs-onetime-chart";
 import SpendingPaceCard from "./spending-pace-card";
 import ChartDateFilter from "./chart-date-filter";
 import SectionCard from "@/components/shared/section-card";
+import { ExportButton } from "@/components/dashboard/export/ExportButton";
+import { format } from "date-fns";
 
 const STORAGE_KEY = "reports-panel-config";
 
@@ -276,13 +278,38 @@ export default function ReportsLayout({ data }: ReportsLayoutProps) {
             </div>
           </div>
 
-          <button
-            onClick={() => setEditOpen((o) => !o)}
-            className="flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg border border-border bg-card hover:bg-muted/60 transition-colors duration-200 text-muted-foreground hover:text-foreground"
-          >
-            <Settings2 className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Edit Panels</span>
-          </button>
+          <div className="flex items-center gap-3">
+            <ExportButton
+              data={{
+                title: "Financial Reports Summary",
+                filename: `reports_${format(new Date(), "yyyy-MM-dd")}`,
+                columns: [
+                  { header: "Indicator", key: "title" },
+                  { header: "Value", key: "valueStr" },
+                  { header: "Change (%)", key: "changeStr" },
+                  { header: "Period", key: "period" }
+                ],
+                data: Object.values(data.kpis).map(kpi => ({
+                  ...kpi,
+                  valueStr: kpi.title.toLowerCase().includes("ratio") || kpi.title.toLowerCase().includes("count")
+                    ? kpi.value.toString()
+                    : kpi.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                  changeStr: kpi.change !== null ? `${(kpi.change * 100).toFixed(1)}%` : "-"
+                })),
+                summary: {
+                  "Pace Project (Month)": `${data.spendingPace.projectedSpend.toFixed(2)}`,
+                  "KPIs Tracked": Object.keys(data.kpis).length
+                }
+              }}
+            />
+            <button
+              onClick={() => setEditOpen((o) => !o)}
+              className="flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg border border-border bg-card hover:bg-muted/60 transition-colors duration-200 text-muted-foreground hover:text-foreground"
+            >
+              <Settings2 className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Edit Panels</span>
+            </button>
+          </div>
         </div>
 
         {/* Edit panel dialog */}
