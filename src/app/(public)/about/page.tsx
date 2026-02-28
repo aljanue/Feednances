@@ -2,6 +2,8 @@
 
 import { motion, Variants } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
+import { Coffee, Heart, Globe, Sparkles } from "lucide-react";
+import Link from "next/link";
 
 export default function AboutPage() {
   const container: Variants = {
@@ -18,13 +20,13 @@ export default function AboutPage() {
   };
 
   return (
-    <div className="relative w-full min-h-[calc(100vh-85px)] flex flex-col items-center overflow-hidden pb-32">
+    <div className="relative w-full min-h-[calc(100vh-85px)] flex flex-col items-center overflow-hidden pb-8">
       {/* Background glow effects */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[500px] bg-primary/10 blur-[180px] rounded-[100%] pointer-events-none -z-10" />
       <div className="absolute top-1/2 right-0 w-[500px] h-[500px] bg-blue-500/10 blur-[150px] rounded-full pointer-events-none -z-10" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-emerald-500/10 blur-[150px] rounded-full pointer-events-none -z-10" />
 
-      <div className="w-full max-w-6xl mx-auto flex flex-col relative z-10 px-6 sm:px-8 py-24 md:py-32">
+      <div className="w-full max-w-6xl mx-auto flex flex-col relative z-10 px-6 sm:px-8 pt-24 md:pt-32 pb-12">
         <motion.div
           variants={container}
           initial="hidden"
@@ -171,6 +173,77 @@ export default function AboutPage() {
               </div>
             </motion.div>
           </div>
+
+          {/* Donation Section */}
+          <motion.div variants={item} className="w-full relative pt-6">
+            <div className="absolute inset-0 bg-primary/5 blur-3xl rounded-[3rem] -z-10" />
+
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center bg-white/[0.03] border border-white/10 rounded-[3rem] p-8 md:p-16 backdrop-blur-3xl overflow-hidden relative group">
+              {/* Background accent */}
+              <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all duration-700" />
+
+              <div className="lg:col-span-3 space-y-8">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary font-bold text-sm tracking-wide">
+                  <Heart className="size-4 animate-pulse fill-primary" />
+                  Support the project
+                </div>
+
+                <h2 className="text-4xl md:text-6xl font-black text-white tracking-tight leading-tight italic">
+                  Keep Feednances <br />
+                  <span className="text-primary not-italic">Independent & Free.</span>
+                </h2>
+
+                <div className="space-y-4 text-lg text-muted-foreground leading-relaxed max-w-xl">
+                  <p>
+                    Feednances is 100% created and maintained by a solo developer. No big investors, no selling your data, and no subscription fees for the app itself—ever.
+                  </p>
+                  <p>
+                    Your support directly covers the costs of our secure servers, databases, and the time needed to build new features like the Telegram Bot and iOS integrations.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-6 pt-4">
+                  <Link
+                    href="https://buymeacoffee.com/feednances"
+                    target="_blank"
+                    className="flex items-center gap-3 px-8 py-5 rounded-2xl bg-[#FFDD00] hover:bg-[#FFCC00] text-black font-black text-lg transition-all hover:scale-105 active:scale-95 shadow-[0_0_50px_-10px_rgba(255,221,0,0.3)] hover:shadow-[0_0_60px_-10px_rgba(255,221,0,0.5)]"
+                  >
+                    <Coffee className="size-6 fill-current" />
+                    Buy me a coffee
+                  </Link>
+
+                  <p className="text-sm text-muted-foreground italic font-medium max-w-[200px]">
+                    Thank you for helping me keep this project alive. Every coffee counts!
+                  </p>
+                </div>
+              </div>
+
+              <div className="lg:col-span-2 grid grid-cols-2 gap-4 relative">
+                <div className="space-y-4">
+                  <div className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/[0.08] transition-colors">
+                    <Globe className="size-6 text-primary mb-3" />
+                    <h4 className="text-white font-bold mb-1 italic">Server Uptime</h4>
+                    <p className="text-xs text-muted-foreground leading-relaxed">Keeping your data synced 24/7 across all devices instantly.</p>
+                  </div>
+                  <div className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/[0.08] transition-colors">
+                    <Sparkles className="size-6 text-emerald-400 mb-3" />
+                    <h4 className="text-white font-bold mb-1 italic">New Tech</h4>
+                    <p className="text-xs text-muted-foreground leading-relaxed">Developing advanced AI categorization and bank syncs.</p>
+                  </div>
+                </div>
+                <div className="space-y-4 pt-8">
+                  <div className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/[0.08] transition-colors">
+                    <Heart className="size-6 text-pink-500 mb-3" />
+                    <h4 className="text-white font-bold mb-1 italic">Pure Passion</h4>
+                    <p className="text-xs text-muted-foreground leading-relaxed">Software built by a human for humans, not for profit.</p>
+                  </div>
+                  <div className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/[0.08] transition-colors flex items-center justify-center italic text-primary/40 font-black text-2xl tracking-tighter">
+                    100% FREE
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
 
         </motion.div>
       </div>

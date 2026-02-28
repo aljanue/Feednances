@@ -13,7 +13,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 import { cn } from "@/lib/utils";
-import { ChevronDown, LogOut, User } from "lucide-react";
+import { ChevronDown, LogOut, User, Coffee } from "lucide-react";
+import Link from "next/link";
 
 interface UserProps {
   username: string;
@@ -91,6 +92,17 @@ export default function UserMenuItem({ username, fullName, image, className, var
             </p>
           </div>
         </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link
+            href="https://buymeacoffee.com/feednances"
+            target="_blank"
+            className="flex items-center gap-2 cursor-pointer focus:bg-primary/10 focus:text-primary transition-colors"
+          >
+            <Coffee className="h-4 w-4" />
+            <span>Buy me a coffee</span>
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           className="text-destructive focus:text-destructive cursor-pointer"

@@ -1,4 +1,5 @@
 import NavBar from "@/components/public/navbar";
+import Footer from "@/components/public/footer";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -37,6 +38,7 @@ export default function PublicLayout({
     <div className="flex flex-col min-h-screen">
       <NavBar />
       {children}
+      <Footer />
     </div>
   );
 }

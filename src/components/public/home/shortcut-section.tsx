@@ -12,7 +12,7 @@ const steps = [
 
 export default function ShortcutSection() {
   return (
-    <section className="py-12 md:py-24 w-full relative flex items-center justify-center lg:px-16 md:px-12 sm:px-8 px-4 overflow-hidden">
+    <section id="shortcut" className="py-12 md:py-24 w-full relative flex items-center justify-center lg:px-16 md:px-12 sm:px-8 px-4 overflow-hidden scroll-mt-20">
       {/* Background elements */}
       <div className="absolute top-1/2 right-0 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 blur-[100px] rounded-full pointer-events-none -z-10" />
 

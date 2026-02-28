@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { getUserById } from "@/lib/data/users.queries";
 import UserMenuItem from "../dashboard/user-menu-item";
 import DesktopNav from "./desktop-nav";
+import { Coffee } from "lucide-react";
 
 export default async function NavBar() {
   const session = await auth();
@@ -51,7 +52,17 @@ export default async function NavBar() {
       </div>
 
       {/* Mobile Navigation */}
-      <MobileNav user={user ? { username: user.username, fullName: user.fullName, image: user.image } : null} />
+      <div className="flex md:hidden items-center gap-3">
+        <Link
+          href="https://buymeacoffee.com/feednances"
+          target="_blank"
+          className="flex items-center justify-center size-10 rounded-full bg-[#FFDD00]/10 border border-[#FFDD00]/20 text-[#FFDD00] hover:bg-[#FFDD00]/20 transition-all active:scale-95 group/mobile-coffee"
+          title="Support development"
+        >
+          <Coffee className="size-5 fill-current" />
+        </Link>
+        <MobileNav user={user ? { username: user.username, fullName: user.fullName, image: user.image } : null} />
+      </div>
     </nav>
   );
 }

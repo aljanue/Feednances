@@ -11,7 +11,7 @@ const features = [
 
 export default function FeatureShowcase() {
   return (
-    <section className="py-12 md:py-24 w-full flex justify-center items-center lg:px-16 md:px-12 sm:px-8 px-4 relative">
+    <section id="features" className="py-12 md:py-24 w-full flex justify-center items-center lg:px-16 md:px-12 sm:px-8 px-4 relative">
       <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
         {/* Text Side */}
         <motion.div

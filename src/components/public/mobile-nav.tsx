@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { signOut } from "next-auth/react";
+import { LogOut } from "lucide-react";
 
 interface MobileNavProps {
   user?: {
@@ -142,6 +144,18 @@ export default function MobileNav({ user }: MobileNavProps) {
                 >
                   Go to Dashboard
                 </Link>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    signOut({ callbackUrl: "/" });
+                  }}
+                  className="flex items-center justify-center gap-2 h-12 px-4 rounded-lg border border-destructive/20 text-destructive bg-destructive/5 hover:bg-destructive/10 transition-colors font-medium"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Log out
+                </button>
               </div>
             ) : (
               <>

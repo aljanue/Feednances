@@ -33,7 +33,7 @@ export default function DashboardNavbar({
         isCollapsed ? "w-20 p-4" : "w-64 p-6"
       )}
     >
-      <section className="flex flex-col gap-6">
+      <section className="flex flex-col gap-6 overflow-y-auto scrollbar-none flex-1">
         <div className={cn("flex items-center", isCollapsed && "justify-center")}>
           <Logo collapsed={isCollapsed} />
         </div>

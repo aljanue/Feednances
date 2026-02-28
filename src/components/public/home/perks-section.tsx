@@ -18,7 +18,7 @@ export default function PerksSection() {
   };
 
   return (
-    <section className="py-12 md:py-24 w-full relative flex flex-col items-center lg:px-16 md:px-12 sm:px-8 px-4">
+    <section className="py-12 md:py-24 w-full relative flex flex-col items-center lg:px-16 md:px-12 sm:px-8 px-4 scroll-mt-20">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] max-w-[800px] h-[600px] bg-primary/5 blur-[120px] rounded-full pointer-events-none -z-10" />
 
       <div className="text-center max-w-3xl mb-16">
@@ -38,7 +38,7 @@ export default function PerksSection() {
         className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-4"
       >
         {/* Large Feature 1 */}
-        <motion.div variants={itemVariants} className="md:col-span-2 relative overflow-hidden rounded-3xl bg-white/5 border border-white/10 p-8 min-h-[250px] flex flex-col justify-end group hover:bg-white/[0.07] transition-colors">
+        <motion.div id="telegram" variants={itemVariants} className="md:col-span-2 relative overflow-hidden rounded-3xl bg-white/5 border border-white/10 p-8 min-h-[250px] flex flex-col justify-end group hover:bg-white/[0.07] transition-colors scroll-mt-24">
           <div className="absolute top-0 right-0 p-8 text-primary/20 group-hover:text-primary/40 transition-colors">
             <Smartphone className="w-32 h-32" />
           </div>
@@ -46,8 +46,8 @@ export default function PerksSection() {
             <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center mb-6">
               <Zap className="w-6 h-6 text-primary" />
             </div>
-            <h3 className="text-2xl font-bold mb-2 text-white">Zero Friction & Subscriptions</h3>
-            <p className="text-muted-foreground max-w-md">Log expenses instantly with a simple iOS Shortcut. Easily track and manage all your recurring subscriptions in one beautiful, unified view to avoid unwanted auto-renewals.</p>
+            <h3 className="text-2xl font-bold mb-2 text-white">Powerful Integrations</h3>
+            <p className="text-muted-foreground max-w-md">Log expenses instantly with a simple setup on iOS Shortcuts. Sync your account with our Telegram Bot to receive proactive billing alerts and completely avoid unwanted auto-renewals.</p>
           </div>
         </motion.div>
 

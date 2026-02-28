@@ -5,6 +5,7 @@ import DangerZone from "./danger-zone";
 import { UserSettingsDTO } from "@/lib/dtos/user";
 import Integrations from "./integrations";
 import Preferences from "./preferences";
+import Support from "./support";
 
 interface SettingsLayoutProps {
     user: UserSettingsDTO;
@@ -17,6 +18,7 @@ export default function SettingsLayout({ user }: SettingsLayoutProps) {
             <Preferences user={user} />
             <Security user={user} />
             <Integrations user={user} />
+            <Support />
             <DangerZone user={user} />
         </div>
     );
