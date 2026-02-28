@@ -171,7 +171,7 @@ export async function editSubscriptionAction(
     };
   }
 
-  const { id, name, amount, category, timeUnitId, frequencyValue, startsAt } = validation.data;
+  const { id, name, amount, category, timeUnitId, frequencyValue, startsAt, recordPastPayment } = validation.data;
 
   let amountFormatted: string;
   try {
@@ -198,24 +198,61 @@ export async function editSubscriptionAction(
     const nowNormalized = normalizeToUTCMidnight(new Date());
 
     let nextRun = startsAtNormalized;
+    let expensesToInsert: any[] = [];
 
     if (startsAtNormalized <= nowNormalized) {
-      const { nextRun: computedNextRun } = calculateFutureNextRuns(parsedFrequency, dbTimeUnit.value, startsAtNormalized);
+      const { nextRun: computedNextRun, pastRuns } = calculateFutureNextRuns(
+        parsedFrequency,
+        dbTimeUnit.value,
+        startsAtNormalized
+      );
       nextRun = computedNextRun;
+
+      if (recordPastPayment && pastRuns) {
+        expensesToInsert = pastRuns.map((date: Date) => ({
+          userId: session.user!.id,
+          concept: `🔄 ${name}`,
+          amount: amountFormatted,
+          categoryId: category,
+          date: new Date(), // Recorded today
+          expenseDate: date, // For the historical period
+          isRecurring: true,
+        }));
+      }
     }
 
-    const updated = await updateSubscriptionDetails(id, session.user.id, {
-      name,
-      amount: amountFormatted,
-      categoryId: category,
-      frequencyValue: parsedFrequency,
-      timeUnitId: timeUnitId,
-      startsAt: startsAtNormalized,
-      nextRun: nextRun,
-    });
+    if (expensesToInsert.length > 0) {
+      await createSubscriptionWithTransaction(
+        {
+          userId: session.user.id,
+          name,
+          amount: amountFormatted,
+          categoryId: category,
+          frequencyValue: parsedFrequency,
+          timeUnitId: timeUnitId,
+          startsAt: startsAtNormalized,
+          nextRun: nextRun,
+          active: true,
+        },
+        expensesToInsert
+      );
 
-    if (!updated || updated.length === 0) {
-      return { error: "Subscription not found or not authorized to edit", actionId: Date.now() };
+      // Delete old subscription to avoid duplicate ghosts since we used the creation transaction
+      await deleteSubscription(id, session.user.id);
+    } else {
+      const updated = await updateSubscriptionDetails(id, session.user.id, {
+        name,
+        amount: amountFormatted,
+        categoryId: category,
+        frequencyValue: parsedFrequency,
+        timeUnitId: timeUnitId,
+        startsAt: startsAtNormalized,
+        nextRun: nextRun,
+      });
+
+      if (!updated || updated.length === 0) {
+        return { error: "Subscription not found or not authorized to edit", actionId: Date.now() };
+      }
     }
 
     revalidatePath("/dashboard");

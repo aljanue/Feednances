@@ -58,7 +58,7 @@ export default function EditSubscriptionModal({
 
   const setOpen = onOpenChange;
 
-  const safeInitialDate = subscription.startsAt ? new Date(subscription.startsAt) : undefined;
+  const safeInitialDate = subscription.nextDate ? new Date(subscription.nextDate) : subscription.startsAt ? new Date(subscription.startsAt) : undefined;
   const initialDate = safeInitialDate && !isNaN(safeInitialDate.getTime()) ? safeInitialDate : new Date();
 
   const [date, setDate] = useState<Date | undefined>(initialDate);
@@ -67,19 +67,33 @@ export default function EditSubscriptionModal({
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [isPending, startTransition] = useTransition();
 
+  const [showPastDateAlert, setShowPastDateAlert] = useState(false);
   const [pendingFormData, setPendingFormData] = useState<FormData | null>(null);
 
   const formRef = useRef<HTMLFormElement | null>(null);
 
   useEffect(() => {
     if (open) {
+      if (subscription.nextDate) {
+        const nextD = new Date(subscription.nextDate);
+        setDate(!isNaN(nextD.getTime()) ? nextD : new Date());
+      } else if (subscription.startsAt) {
+        const startsD = new Date(subscription.startsAt);
+        setDate(!isNaN(startsD.getTime()) ? startsD : new Date());
+      } else {
+        setDate(new Date());
+      }
+
       getCategoriesAction().then(setCategories);
       getTimeUnitsAction().then(setTimeUnits);
     }
-  }, [open]);
+  }, [open, subscription]);
 
-  const submitSubscription = (formData: FormData) => {
+  const submitSubscription = (formData: FormData, recordPastPayment: boolean = false) => {
     formData.append("id", subscription.id);
+    if (recordPastPayment) {
+      formData.set("recordPastPayment", "true");
+    }
 
     startTransition(async () => {
       const result = await editSubscriptionAction({}, formData);
@@ -115,7 +129,22 @@ export default function EditSubscriptionModal({
     const formData = new FormData(e.currentTarget);
     setValidationErrors({});
 
-    submitSubscription(formData);
+    const selectedDateStr = formData.get("startsAt")?.toString();
+    if (selectedDateStr) {
+      const selectedDate = new Date(selectedDateStr);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      selectedDate.setHours(0, 0, 0, 0);
+
+      // Treat today as a past date to allow instant creation + scheduling
+      if (selectedDate <= today) {
+        setPendingFormData(formData);
+        setShowPastDateAlert(true);
+        return;
+      }
+    }
+
+    submitSubscription(formData, false);
   };
 
   return (
@@ -240,6 +269,56 @@ export default function EditSubscriptionModal({
           </DialogFooter>
         </form>
       </DialogContent>
+
+      <AlertDialog open={showPastDateAlert} onOpenChange={setShowPastDateAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>You selected a past date</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <span>
+                We noticed the start date for this subscription is in the past.
+                We will automatically calculate your next billing cycle based on this date.
+              </span>
+              <span>
+                <strong>Would you like us to also record expenses for all past billing cycles since that date?</strong>
+                <br />
+                <span className="text-xs text-muted-foreground mt-1 block">
+                  (Note: If you have already recorded these payments previously, select &quot;No, just update next billing&quot; to avoid duplicating expenses).
+                </span>
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2 mt-4 sm:justify-end">
+            <Button
+              variant="outline"
+              disabled={isPending}
+              onClick={() => setShowPastDateAlert(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="secondary"
+              disabled={isPending}
+              onClick={() => {
+                if (pendingFormData) submitSubscription(pendingFormData, false);
+                setShowPastDateAlert(false);
+              }}
+            >
+              No, just update next billing
+            </Button>
+            <Button
+              disabled={isPending}
+              onClick={() => {
+                if (pendingFormData) submitSubscription(pendingFormData, true);
+                setShowPastDateAlert(false);
+              }}
+            >
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Yes, record past payments
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }
