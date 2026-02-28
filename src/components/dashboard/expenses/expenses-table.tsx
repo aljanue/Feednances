@@ -115,8 +115,8 @@ export default function ExpensesTable({
   return (
     <SectionCard padding="compact" className="flex flex-col overflow-hidden">
 
-      <div className="p-6 pb-2">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+      <div className="pb-2 sm:py-6 py-0 sm:px-6 px-0">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:mb-6 mb-1">
           <div>
             <h2 className="text-xl font-bold tracking-tight text-foreground">All Expenses</h2>
             <p className="text-sm text-muted-foreground mt-0.5">Manage and track your audit log entries.</p>
@@ -146,8 +146,8 @@ export default function ExpensesTable({
       </div>
 
 
-      <div className="flex-1 px-1">
-        <div className="rounded-lg overflow-hidden border border-muted/20 bg-card/20 mx-4 mb-2">
+      <div className="flex-1 pt-0 sm:p-6">
+        <div className="rounded-lg overflow-hidden border border-muted/20 bg-card/20">
           <Table>
             <TableHeader className="bg-muted/40">
               <TableRow className="hover:bg-transparent border-b-muted/30">

@@ -9,8 +9,8 @@ interface TitleHeaderProps {
 export default function TitleHeader({ title, description, icon }: TitleHeaderProps) {
   if (icon) {
     return (
-      <div className="flex items-center gap-3">
-        <div className="p-2.5 rounded-xl bg-primary/10">
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="p-2.5 rounded-xl bg-primary/10 hidden sm:block">
           <div className="text-primary [&>svg]:h-5 [&>svg]:w-5">
             {icon}
           </div>

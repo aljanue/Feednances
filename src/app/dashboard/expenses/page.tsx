@@ -58,7 +58,7 @@ export default async function ExpensesPage({ searchParams }: ExpensesPageProps) 
 
   return (
     <MainSection>
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex sm:items-center items-start justify-between gap-4 mb-4 sm:flex-row flex-col">
         <TitleHeader
           title="Expenses"
           description="Real-time audit log and historical expenditure tracking."

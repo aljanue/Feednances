@@ -24,7 +24,7 @@ export default async function CategoriesPage() {
 
   return (
     <MainSection>
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex sm:items-center items-start justify-between gap-4 mb-4 sm:flex-row flex-col">
         <TitleHeader
           title="Categories"
           description="Manage your expense categories. Default categories cannot be modified."
