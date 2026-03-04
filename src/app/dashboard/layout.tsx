@@ -35,9 +35,6 @@ export default async function DashboardLayout({
 
   const user = await getUserById(session.user.id);
 
-  if (user?.firstLogin) {
-    redirect("/configuration");
-  }
 
   return (
     <UserPreferencesProvider currency={user?.currency ?? "EUR"} timeZone={user?.timeZone ?? "UTC"}>

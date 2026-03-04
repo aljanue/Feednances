@@ -104,7 +104,7 @@ export default function EditExpenseModal({ expense }: EditExpenseModalProps) {
         <Button
           variant="ghost"
           size="sm"
-          className="size-8 p-0 text-muted-foreground hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+          className="size-8 p-0 text-primary hover:bg-transparent lg:opacity-0 lg:group-hover:opacity-100 transition-opacity"
         >
           <Pencil className="size-4" />
           <span className="sr-only">Edit</span>

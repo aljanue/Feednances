@@ -5,7 +5,6 @@ import { AuthError } from "next-auth";
 import {
   createUser,
   updateUserPassword,
-  updateUserFirstLogin,
 } from "@/lib/data/users.queries";
 import { hash } from "bcryptjs";
 import { redirect } from "next/navigation";

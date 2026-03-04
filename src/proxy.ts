@@ -47,7 +47,6 @@ export const config = {
   matcher: [
     "/api/:path*",
     "/dashboard/:path*",
-    "/configuration/:path*",
     "/login",
     "/register",
   ],

@@ -153,7 +153,6 @@ export async function generateApiKeyAction(): Promise<{ success: boolean; messag
     await updateUserKey(user.id, hashedKey);
 
     revalidatePath("/dashboard/settings");
-    revalidatePath("/configuration");
     return { success: true, message: "API Key generated successfully.", key: newKey };
   } catch (error) {
     console.error("Error generating API key:", error);
@@ -172,7 +171,6 @@ export async function unlinkTelegramAction(): Promise<{ success: boolean; messag
     await updateUserTelegramChatId(session.user.id, null);
 
     revalidatePath("/dashboard/settings");
-    revalidatePath("/configuration");
     return { success: true, message: "Telegram account unlinked successfully." };
   } catch (error) {
     console.error("Error unlinking Telegram:", error);
@@ -209,7 +207,6 @@ export async function deleteApiKeyAction(): Promise<{ success: boolean; message:
     await updateUserKey(session.user.id, null);
 
     revalidatePath("/dashboard/settings");
-    revalidatePath("/configuration");
     return { success: true, message: "API Key deleted successfully." };
   } catch (error) {
     console.error("Error deleting API key:", error);

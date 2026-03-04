@@ -88,12 +88,6 @@ export async function updateUserPreferences(userId: string, data: { currency: st
     .returning();
 }
 
-export async function updateUserFirstLogin(userId: string, firstLogin: boolean) {
-  return await db
-    .update(users)
-    .set({ firstLogin })
-    .where(eq(users.id, userId));
-}
 
 export async function createUser(data: typeof users.$inferInsert) {
   return await db.insert(users).values(data).returning();

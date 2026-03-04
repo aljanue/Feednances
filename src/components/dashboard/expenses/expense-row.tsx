@@ -156,7 +156,7 @@ function DeleteExpenseDialog({
         <Button
           variant="ghost"
           size="sm"
-          className="size-8 p-0 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+          className="size-8 p-0 text-destructive hover:bg-transparent lg:opacity-0 lg:group-hover:opacity-100 transition-opacity"
           disabled={isPending}
         >
           <Trash2 className="size-4" />
